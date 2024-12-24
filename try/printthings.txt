@@ -1,0 +1,23 @@
+/*  验证根据H生成码字的计算过程
+    // printf("T_inv:\n");
+    // printMatrix(T_inv,M * Z - g,M * Z - g);
+    // printf("CC:\n");
+    // printMatrix(CC, g, (N-M)*Z);
+    // printf("DD:\n");
+    // printMatrix(DD, g, g);
+    // printf("CCT:\n");
+    // printMatrix(CCT, (N-M)*Z, g);
+    // printf("DDT:\n");
+    // printMatrix(DDT, g, g);
+    // printf("DDT_inv:\n");
+    // printMatrix(DDT_inv, g, g);
+    // printf("AT:\n");
+    // printMatrix(AT, (N - M)*Z, M * Z - g);
+    // printf("BT:\n");
+    // printMatrix(BT, g, M * Z - g);
+    // printf("TT:\n");
+    // printMatrix(TT, M * Z - g, M * Z - g);
+    // printf("TT_inv:\n");
+    // printMatrix(TT_inv, M * Z - g, M * Z - g);
+*/
+
