@@ -62,5 +62,6 @@
     "stdbool.h": "c",
     "stdlib.h": "c",
     "random": "c"
-  }
+  },
+  "python.terminal.activateEnvironment": true
 }

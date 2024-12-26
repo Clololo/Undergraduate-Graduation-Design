@@ -1,0 +1,34 @@
+@echo off
+
+REM 编译所有源文件并生成可执行文件
+gcc -o test test.c pso.c FDE.c GA.c ../tools/math_tools.c ../tools/print_tool.c
+
+REM 检查是否编译成功
+if %errorlevel% neq 0 (
+    echo Compilation failed.
+    exit /b %errorlevel%
+)
+
+REM 运行生成的程序
+test.exe
+
+
+rem 检查 Python 是否安装
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Error: Python is not installed or not in PATH.
+    pause
+    exit /b
+)
+
+rem 运行 Python 脚本
+python ../draw/PSO/psoOptResDrawing.py
+
+if %errorlevel% neq 0 (
+    echo Error: Failed to run Python script.
+    pause
+    exit /b
+)
+
+echo All tasks completed successfully.
+pause

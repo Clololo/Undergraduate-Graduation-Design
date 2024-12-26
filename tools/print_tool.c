@@ -81,3 +81,30 @@ void printFormattedLine(Parameters params, int width) {
     // 打印行的结束边界
     printf("|\n");
 }
+
+
+void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dv, int dc) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Error: Unable to open file %s\n", filename);
+        return;
+    }
+
+    // 写入表头
+    fprintf(file, "Degree,Rho,Lambda\n");
+    for (int i = 0; i <= (dv > dc ? dv : dc); i++) {
+        fprintf(file, "%d,", i);
+        if (i <= dv) {
+            fprintf(file, "%.6f,", rho[i]);
+        } else {
+            fprintf(file, ",");
+        }
+        if (i <= dc) {
+            fprintf(file, "%.6f", lambda[i]);
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
+    printf("Results saved to %s\n", filename);
+}

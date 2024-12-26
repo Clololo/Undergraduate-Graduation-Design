@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "math_tools.h"
+#include "../tools/math_tools.h"
 
 // 定义常量
 #define MAX_ITER 1000
@@ -32,7 +32,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
                 Evn[k] = 2 / (sigma * sigma) + vn_degree[k] * Ave_CN;
             }
             // 计算误比特率Pe
-            current_Pe = 0.0;
+            current_Pe = 0.0;            
             for (int k = 0; k < vn_len; k++) {
                 current_Pe += vn_edge_portion[k] * (1 - normcdf(sqrt(Evn[k] / 2)));
             }
@@ -65,7 +65,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
                 Evn[k] = 2 / (sigma * sigma) + vn_degree[k] * Ave_CN;
             }
             // 计算误比特率Pe
-            current_Pe = 0.0;
+current_Pe = 0.0;
             for (int k = 0; k < vn_len; k++) {
                 current_Pe += vn_edge_portion[k] * (1 - normcdf(sqrt(Evn[k] / 2)));
             }
@@ -86,3 +86,5 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
     }
     return sigma;
 }
+
+

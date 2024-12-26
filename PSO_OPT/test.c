@@ -4,20 +4,7 @@
 #include <time.h>
 #include "FDE.h"
 #include "pso.h"
-
-// #define PI 3.141592653589793
-// #define MAX_ITER 1000     // 最大迭代次数
-// #define EPSILON 1e-6      // 收敛值
-// #define DV 6              // 最大变量节点度
-// #define DC 6              // 最大校验节点度
-// #define STEP_SIZE 0.1     // 拉普拉斯变换步长
-// #define SIGMA_TARGET 1.0  // 目标信器治比 σ（可根据香农极限调整）
-// #define N 100             // 输入消息数量
-
-// // 度分布函数 (ρ 和 λ)
-// double rho[DV + 1];  // 变量节点的度分布概率
-// double lambda[DC + 1];  // 校验节点的度分布概率
-// double messages[N];  // 输入消息数组
+#include "../tools/print_tool.h"
 
 
 int main() {
@@ -61,8 +48,21 @@ int main() {
     }
 
     // 输出优化后的结果
-    printf("Optimized rho[2]: %f, lambda[2]: %f\n", gbestPop[0], gbestPop[1]);
+    // 输出优化后的 rho 和 lambda 值
+    printf("Optimized Degree Distributions:\n");
+    printf("rho: ");
+    for (int i = 1; i <= DV; i++) {
+        printf("rho[%d] = %f ", i, rho[i]);
+    }
+    printf("\n");
 
+    printf("lambda: ");
+    for (int i = 1; i <= DC; i++) {
+        printf("lambda[%d] = %f ", i, lambda[i]);
+    }
+    printf("\n");
+
+    pso_save_to_csv("res_text/results.csv", rho, lambda, DV, DC);
     return 0;
 }
 
