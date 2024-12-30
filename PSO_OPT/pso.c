@@ -6,20 +6,19 @@
 #include "pso.h"
 #include "GA.h"
 
-#define PI 3.141592653589793
-
 
 int vn_len = 100;  // 变量节点数
 int cn_len = 50;   // 校验节点数
 
+const int dim = 150;
 
 double Ecn[cn_l], Evn[vn_l];
 double vn_degree[vn_l], cn_degree[cn_l];
 double vn_edge_portion[vn_l], cn_edge_portion[cn_l];
 
-double rho[DV + 1];  // 变量节点的度分布概率
-double lambda[DC + 1];  // 校验节点的度分布概率
-double messages[N];  // 输入消息数组
+double rho[vn_len + 1];  // 变量节点的度分布概率
+double lambda[cn_len + 1];  // 校验节点的度分布概率
+double messages[dim];  // 输入消息数组
 
 // 获取惯性权重
 double getWeight() {
@@ -39,7 +38,7 @@ int getMaxGen() {
 
 // 种群规模
 int getSizePop() {
-    return 50;
+    return all_len;
 }
 
 // 粒子位置范围
@@ -82,16 +81,33 @@ int iterative_snr_threshold
     }
 }
 
-//又JB
+//损失函数
+void normalize_distribution(double *dist, int len) {   
+    double sum = 0.0;
+    for (int i = 0; i < len; i++) {
+        sum += dist[i];
+    }
+    for (int i = 0; i < len; i++) {
+        dist[i] /= sum;
+    }
+}
 
 // 损失函数  
-double func(const double x[2], double *Ecn, double *Evn, 
+double func(const double x[all_len], double *Ecn, double *Evn, 
             double *vn_degree, double *cn_degree, 
             double *vn_edge_portion, double *cn_edge_portion, 
             int vn_len, int cn_len) {
-    // x[0] -> rho[2] 的值, x[1] -> lambda[2] 的值
-    rho[2] = x[0];
-    lambda[2] = x[1];
+
+    for (int i = 0; i < cn_len; i++) {
+        rho[i] = x[i];  // 从粒子数组中提取校验节点度分布
+    }
+
+    for (int i = 0; i < vn_len; i++) {
+        lambda[i] = x[cn_len + i];  // 从粒子数组中提取变量节点度分布
+    }
+
+    normalize_distribution(rho, cn_len);
+    normalize_distribution(lambda, vn_len);
     
     // 使用信道解码中的逻辑来计算SNR
     double snr_threshold = iterative_snr_threshold(SIGMA_TARGET, 1, Ecn, Evn, 
@@ -104,64 +120,71 @@ double func(const double x[2], double *Ecn, double *Evn,
     return fabs(snr_threshold - shannon_limit);
 }
 
-
 // 初始化种群、速度和适应度
 void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[2],
-                 double pop[][2], double v[][2], double fitness[], double *Ecn, double *Evn, 
+                 double pop[], double v[], double fitness[], double *Ecn, double *Evn, 
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion, 
                 int vn_len, int cn_len) {
     for (int i = 0; i < sizePop; ++i) {
-        pop[i][0] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
-        pop[i][1] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
-        v[i][0] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
-        v[i][1] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
+        pop[i] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
+        v[i] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
     }
 }
 
 // 获取初始最优值
-void getInitBest(int sizePop, const double fitness[], const double pop[][2],
-                 double gbestPop[2], double *gbestFitness,
-                 double pbestPop[][2], double pbestFitness[]) {
-    int maxIdx = 0;
+void getInitBest(int sizePop, const double fitness[], const double pop[],
+                 double gbestPop[], double *gbestFitness,
+                 double pbestPop[], double pbestFitness[]) {
+    int maxIdx = 0;                 
     for (int i = 1; i < sizePop; ++i) {
         if (fitness[i] > fitness[maxIdx]) {
             maxIdx = i;
         }
     }
     *gbestFitness = fitness[maxIdx];
-    gbestPop[0] = pop[maxIdx][0];
-    gbestPop[1] = pop[maxIdx][1];
+    gbestPop = pop[maxIdx];
 
     for (int i = 0; i < sizePop; ++i) {
         pbestFitness[i] = fitness[i];
-        pbestPop[i][0] = pop[i][0];
-        pbestPop[i][1] = pop[i][1];
+        pbestPop[i] = pop[i];
+
     }
 }
 
+double getDeclineRate(int iter,int now){
+    return ((double)iter-(double)now)/(double)iter;
+}
+
 // 粒子群优化更新函数
-void update_particles(int sizePop, double pop[][2], double v[][2], double fitness[],
-                      double pbestPop[][2], double pbestFitness[], double gbestPop[2], 
-                      double *gbestFitness) {
+void update_particles(int sizePop, double pop[][dim], double v[][dim], double fitness[],
+                      double pbestPop[][dim], double pbestFitness[], double gbestPop[dim], 
+                      double *gbestFitness, int iter, int now_iter) {
+
+    // pop[][dim]  代表若干粒子，每个粒子搜索dim个自变量的当前解
+    // v[][dim]  若干粒子在每个自变量上的速度
+    // fitness 每个粒子的最优适应度
+    // pbestPop  每个粒子搜索dim个自变量的最优解
+    // gbestPop  dim个自变量的全局最优解
     double lr[2];
     getLearningRate(lr);
-    double rangeSpeed[2] = {-0.5, 0.5};
-    double rangePop[2] = {-2 * PI, 2 * PI};
+    double rangeSpeed[2] = {-0.5, 0.5};   // 速度的上下限
+    double rangePop[2] = {0, 1};   //位置的上下限
 
     for (int i = 0; i < sizePop; ++i) {
-        for (int k = 0; k < 2; ++k) {
-            v[i][k] += lr[0] * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
-                    + lr[1] * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]);
+        for (int k = 0; k < dim; ++k) {
+            double w = getDeclineRate(iter,now_iter);
+            v[i][k] += w * (lr[0] * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
+                    + lr[1] * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]));
             if (v[i][k] < rangeSpeed[0]) v[i][k] = rangeSpeed[0];
             if (v[i][k] > rangeSpeed[1]) v[i][k] = rangeSpeed[1];
         }
     }
 
     for (int i = 0; i < sizePop; ++i) {
-        for (int k = 0; k < 2; ++k) {
+        for (int k = 0; k < dim; ++k) {
             pop[i][k] += v[i][k];
             if (pop[i][k] < rangePop[0]) pop[i][k] = rangePop[0];
             if (pop[i][k] > rangePop[1]) pop[i][k] = rangePop[1];
@@ -174,96 +197,16 @@ void update_particles(int sizePop, double pop[][2], double v[][2], double fitnes
                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
         if (fitness[i] > pbestFitness[i]) {
             pbestFitness[i] = fitness[i];
-            pbestPop[i][0] = pop[i][0];
-            pbestPop[i][1] = pop[i][1];
+            for(int k = 0; k < dim; ++k){
+                pbestPop[i][k] = pop[i][k];
+            }
         }
         if (fitness[i] > *gbestFitness) {
             *gbestFitness = fitness[i];
-            gbestPop[0] = pop[i][0];
-            gbestPop[1] = pop[i][1];
+            for(int k = 0; k < dim; ++k){
+                gbestPop[k] = pop[i][k];
+            }
         }
     }
-}
+}      
 
-// int main() {
-//     srand(time(0));
-
-//     double w = getWeight();
-//     double lr[2];
-//     getLearningRate(lr);
-//     int maxGen = getMaxGen();
-//     int sizePop = getSizePop();
-
-//     double rangePop[2];
-//     getRangePop(rangePop);
-//     double rangeSpeed[2];
-//     getRangeSpeed(rangeSpeed);
-
-//     double pop[sizePop][2];
-//     double v[sizePop][2];
-//     double fitness[sizePop];
-//     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness);
-
-//     double gbestPop[2];
-//     double gbestFitness;
-//     double pbestPop[sizePop][2];
-//     double pbestFitness[sizePop];
-//     getInitBest(sizePop, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
-
-//     double result[maxGen];
-//     for (int i = 0; i < maxGen; ++i) {
-//         double t = 0.5;
-
-//         // 更新速度
-//         for (int j = 0; j < sizePop; ++j) {
-//             for (int k = 0; k < 2; ++k) {
-//                 v[j][k] += lr[0] * ((double)rand() / RAND_MAX) * (pbestPop[j][k] - pop[j][k])
-//                         + lr[1] * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[j][k]);
-//                 if (v[j][k] < rangeSpeed[0]) v[j][k] = rangeSpeed[0];
-//                 if (v[j][k] > rangeSpeed[1]) v[j][k] = rangeSpeed[1];
-//             }
-//         }
-
-//         // 更新位置
-//         for (int j = 0; j < sizePop; ++j) {
-//             for (int k = 0; k < 2; ++k) {
-//                 pop[j][k] = t * (0.5 * v[j][k]) + (1 - t) * pop[j][k];
-//                 if (pop[j][k] < rangePop[0]) pop[j][k] = rangePop[0];
-//                 if (pop[j][k] > rangePop[1]) pop[j][k] = rangePop[1];
-//             }
-//         }
-
-//         // 更新适应度
-//         for (int j = 0; j < sizePop; ++j) {
-//             fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
-//                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
-
-//             if (fitness[j] > pbestFitness[j]) {
-//                 pbestFitness[j] = fitness[j];
-//                 pbestPop[j][0] = pop[j][0];
-//                 pbestPop[j][1] = pop[j][1];
-//             }
-//         }
-
-//         int maxIdx = 0;
-//         for (int j = 1; j < sizePop; ++j) {
-//             if (pbestFitness[j] > pbestFitness[maxIdx]) {
-//                 maxIdx = j;
-//             }
-//         }
-//         if (pbestFitness[maxIdx] > gbestFitness) {
-//             gbestFitness = pbestFitness[maxIdx];
-//             gbestPop[0] = pbestPop[maxIdx][0];
-//             gbestPop[1] = pbestPop[maxIdx][1];
-//         }
-
-//         result[i] = gbestFitness;
-//         printf("第%d个循环后，在[%f, %f]得到最佳适应度%f\n",i+1,gbestPop[0], gbestPop[1],gbestFitness);
-//     }
-
-//     // 输出最终结果
-//     printf("最佳适应度: %f\n", gbestFitness);
-//     printf("最佳位置: [%f, %f]\n", gbestPop[0], gbestPop[1]);
-
-//     return 0;
-// }

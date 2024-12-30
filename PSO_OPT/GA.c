@@ -4,9 +4,7 @@
 #include "../tools/math_tools.h"
 
 // 定义常量
-#define MAX_ITER 1000
-#define PE_THRESHOLD 1e-5
-#define SIGMA_INC 1e-3
+
 
 // SNR阈值计算（使用高斯近似）
 double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn, 
@@ -20,7 +18,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
         if (iter == 1) {
             // 计算第一次Ecn和Evn
             for (int k = 0; k < cn_len; k++) {
-                Ecn[k] = phi_inverse(1 - pow(1 - phi(2 / (sigma * sigma)), cn_degree[k]));
+                Ecn[k] = phi_inverse(1 - pow(1 - phi(2 / (sigma * sigma)), cn_degree[k]));  
             }
             // 计算Ave_CN
             double Ave_CN = 0.0;
@@ -44,7 +42,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
             } else {
                 iter++;
             }
-        } else {
+        } else {   
             // 后续迭代过程
             double weighted_sum = 0.0;
             for (int k = 0; k < vn_len; k++) {

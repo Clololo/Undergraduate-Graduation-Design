@@ -61,7 +61,8 @@
     "time.h": "c",
     "stdbool.h": "c",
     "stdlib.h": "c",
-    "random": "c"
+    "random": "c",
+    "value.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

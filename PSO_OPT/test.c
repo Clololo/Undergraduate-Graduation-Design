@@ -7,6 +7,8 @@
 #include "../tools/print_tool.h"
 
 
+
+
 int main() {
     srand(time(NULL));
 
@@ -21,14 +23,15 @@ int main() {
     getRangeSpeed(rangeSpeed);
 
     // 粒子群优化初始化
-    double pop[sizePop][2], v[sizePop][2], fitness[sizePop];
+    // 我目前
+    double pop[sizePop], v[sizePop], fitness[sizePop];    
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion, 
             vn_len, cn_len);
     
     // 初始最优解
-    double gbestPop[2], gbestFitness;
-    double pbestPop[sizePop][2], pbestFitness[sizePop];
+    double gbestPop[sizePop], gbestFitness;    
+    double pbestPop[sizePop], pbestFitness[sizePop];
     getInitBest(sizePop, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
 
     int lastBest = -1;

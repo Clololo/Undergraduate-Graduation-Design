@@ -4,23 +4,27 @@
 #include "FDE.h"
 #include "pso.h"
 
-// 初始化度分布，使其满足微分和为 1    
-// 这里后面需要换成PSO优化出的度分布
-void initialize_degree_distributions() {
-    for (int i = 2; i <= DV; i++) {
-        rho[i] = 1.0 / (DV - 1);  // 从度 2 开始
-    }
-    for (int i = 2; i <= DC; i++) {
-        lambda[i] = 1.0 / (DC - 1);  // 从度 2 开始
-    }
-}
 
-// 计算码率 R
-double compute_code_rate() {
-    double sum_rho = 0.0, sum_lambda = 0.0;
-    for (int i = 2; i <= DV; i++) {
-        sum_rho += rho[i];
-    }
+// 初始化度分布，使其满足微分和为 1    
+// 这里后面需要换成PSO优化出的度分布    
+// 从度2开始是因为LDPC不设计度为1的节点
+
+
+void initialize_degree_distributions() {    
+    for (int i = 2; i <= DV; i++) {     
+        rho[i] = 1.0 / (DV - 1);  // 从度 2 开始    
+    }   
+    for (int i = 2; i <= DC; i++) { 
+        lambda[i] = 1.0 / (DC - 1);  // 从度 2 开始 
+    }   
+}   
+
+// 计算码率 R   
+double compute_code_rate() {    
+    double sum_rho = 0.0, sum_lambda = 0.0; 
+    for (int i = 2; i <= DV; i++) {  
+        sum_rho += rho[i];    
+    }   
     for (int i = 2; i <= DC; i++) {
         sum_lambda += lambda[i];
     }
