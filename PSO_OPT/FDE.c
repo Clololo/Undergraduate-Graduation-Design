@@ -11,21 +11,21 @@
 
 
 void initialize_degree_distributions() {    
-    for (int i = 2; i <= DV; i++) {     
-        rho[i] = 1.0 / (DV - 1);  // 从度 2 开始    
+    for (int i = 2; i <= vn_l; i++) {     
+        rho[i] = 1.0 / (vn_l - 1);  // 从度 2 开始    
     }   
-    for (int i = 2; i <= DC; i++) { 
-        lambda[i] = 1.0 / (DC - 1);  // 从度 2 开始 
+    for (int i = 2; i <= cn_l; i++) { 
+        lambda[i] = 1.0 / (cn_l - 1);  // 从度 2 开始 
     }   
 }   
 
 // 计算码率 R   
 double compute_code_rate() {    
     double sum_rho = 0.0, sum_lambda = 0.0; 
-    for (int i = 2; i <= DV; i++) {  
+    for (int i = 2; i <= vn_l; i++) {  
         sum_rho += rho[i];    
     }   
-    for (int i = 2; i <= DC; i++) {
+    for (int i = 2; i <= cn_l; i++) {
         sum_lambda += lambda[i];
     }
     return 1.0 - (sum_rho / sum_lambda);
@@ -34,7 +34,7 @@ double compute_code_rate() {
 // 变量节点更新
 double variable_node_update(double sigma) {
     double result = 0.0;
-    for (int i = 2; i <= DV; i++) {
+    for (int i = 2; i <= vn_l; i++) {
         result += rho[i] * tanh(sigma / 2.0);  // 变量节点的消息更新
     }
     return result;
@@ -43,7 +43,7 @@ double variable_node_update(double sigma) {
 // 校验节点更新
 double check_node_update(double sigma) {
     double result = 0.0;
-    for (int i = 2; i <= DC; i++) {
+    for (int i = 2; i <= cn_l; i++) {
         result += lambda[i] * exp(-sigma * i);  // 校验节点的消息更新
     }
     return result;

@@ -18,6 +18,7 @@
 
 extern int vn_len;
 extern int cn_len;
+extern const int dim;
 
 extern double Ecn[cn_l], Evn[vn_l];
 extern double vn_degree[vn_l], cn_degree[cn_l];
@@ -33,16 +34,16 @@ int getMaxGen();
 int getSizePop();
 void getRangePop(double rangePop[2]);
 void getRangeSpeed(double rangeSpeed[2]);
-double func(const double x[all_len], double *Ecn, double *Evn, 
+double func(const double x[], double *Ecn, double *Evn, 
             double *vn_degree, double *cn_degree, 
             double *vn_edge_portion, double *cn_edge_portion, 
             int vn_len, int cn_len);
 void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[2],
-                 double pop[], double v[], double fitness[], double *Ecn, double *Evn, 
+                 double pop[][dim], double v[][dim], double fitness[], double *Ecn, double *Evn, 
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion, 
                 int vn_len, int cn_len);
-void getInitBest(int sizePop, const double fitness[], const double pop[],
+void getInitBest(int sizePop, const double fitness[], const double pop[][dim],
                  double gbestPop[], double *gbestFitness,
                  double pbestPop[], double pbestFitness[]);
 int iterative_snr_threshold(double SIGMA, int key, double *Ecn, 
@@ -50,7 +51,7 @@ int iterative_snr_threshold(double SIGMA, int key, double *Ecn,
                             double *vn_edge_portion, double *cn_edge_portion, 
                             int vn_len, int cn_len);
 void update_particles(int sizePop, double pop[][dim], double v[][dim], double fitness[],
-                      double pbestPop[][dim], double pbestFitness[], double gbestPop[dim], 
-                      double *gbestFitness, int iter, int now_iter);
-   
+                      double pbestPop[][dim], double pbestFitness[], double gbestPop[], 
+                      double *gbestFitness, int iter, int now_iter);    
+
 #endif

@@ -93,7 +93,7 @@ void normalize_distribution(double *dist, int len) {
 }
 
 // 损失函数  
-double func(const double x[all_len], double *Ecn, double *Evn, 
+double func(const double x[], double *Ecn, double *Evn, 
             double *vn_degree, double *cn_degree, 
             double *vn_edge_portion, double *cn_edge_portion, 
             int vn_len, int cn_len) {
@@ -122,20 +122,22 @@ double func(const double x[all_len], double *Ecn, double *Evn,
 
 // 初始化种群、速度和适应度
 void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[2],
-                 double pop[], double v[], double fitness[], double *Ecn, double *Evn, 
+                 double pop[][dim], double v[][dim], double fitness[], double *Ecn, double *Evn, 
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion, 
                 int vn_len, int cn_len) {
     for (int i = 0; i < sizePop; ++i) {
-        pop[i] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
-        v[i] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
+        for(int k = 0; k < dim; ++k) {
+            pop[i][k] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
+            v[i][k] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
+        }
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
     }
 }
 
 // 获取初始最优值
-void getInitBest(int sizePop, const double fitness[], const double pop[],
+void getInitBest(int sizePop, const double fitness[], const double pop[][dim],
                  double gbestPop[], double *gbestFitness,
                  double pbestPop[], double pbestFitness[]) {
     int maxIdx = 0;                 
@@ -143,14 +145,16 @@ void getInitBest(int sizePop, const double fitness[], const double pop[],
         if (fitness[i] > fitness[maxIdx]) {
             maxIdx = i;
         }
-    }
+    }   //看是哪一个粒子搜索到了最佳值
+    
     *gbestFitness = fitness[maxIdx];
     gbestPop = pop[maxIdx];
 
     for (int i = 0; i < sizePop; ++i) {
         pbestFitness[i] = fitness[i];
-        pbestPop[i] = pop[i];
-
+        for(int k = 0; k < dim; ++k){
+            pbestPop[i][k] = pop[i][k];
+        }
     }
 }
 
@@ -160,7 +164,7 @@ double getDeclineRate(int iter,int now){
 
 // 粒子群优化更新函数
 void update_particles(int sizePop, double pop[][dim], double v[][dim], double fitness[],
-                      double pbestPop[][dim], double pbestFitness[], double gbestPop[dim], 
+                      double pbestPop[][dim], double pbestFitness[], double gbestPop[], 
                       double *gbestFitness, int iter, int now_iter) {
 
     // pop[][dim]  代表若干粒子，每个粒子搜索dim个自变量的当前解
@@ -209,4 +213,3 @@ void update_particles(int sizePop, double pop[][dim], double v[][dim], double fi
         }
     }
 }      
-

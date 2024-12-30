@@ -24,7 +24,7 @@ int main() {
 
     // 粒子群优化初始化
     // 我目前
-    double pop[sizePop], v[sizePop], fitness[sizePop];    
+    double pop[sizePop][dim], v[sizePop][dim], fitness[sizePop];    
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion, 
             vn_len, cn_len);
@@ -38,18 +38,10 @@ int main() {
     int repeCounter = 0;
     // 粒子群优化迭代过程
     for (int gen = 0; gen < maxGen; ++gen) {
-        update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness);
+        update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
         printf(" %d: Best Fitness = %f\n", gen, gbestFitness);
-        // if(lastBest == gbestFitness){
-        //     repeCounter++;
-        //     if(repeCounter >= 100) break;
-        // }
-        // else{
-        //     repeCounter = 0;
-        // }
-        // lastBest = gbestFitness;
     }
-
+    
     // 输出优化后的结果
     // 输出优化后的 rho 和 lambda 值
     printf("Optimized Degree Distributions:\n");
