@@ -62,7 +62,7 @@ double f_L(double L) {
 // 拉普拉斯变换的特性函数
 double laplace_transform(double *messages, double v) {
     double result = 0.0;
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < dim; i++) {
         result += pow(tanh(messages[i] / 2.0), v) * f_L(messages[i]);
     }
     return result * STEP_SIZE;

@@ -7,17 +7,14 @@
 #include "GA.h"
 
 
-int vn_len = 100;  // 变量节点数
-int cn_len = 50;   // 校验节点数
-
-const int dim = 150;
+//const int dim = 150;
 
 double Ecn[cn_l], Evn[vn_l];
 double vn_degree[vn_l], cn_degree[cn_l];
 double vn_edge_portion[vn_l], cn_edge_portion[cn_l];
 
-double rho[vn_len + 1];  // 变量节点的度分布概率
-double lambda[cn_len + 1];  // 校验节点的度分布概率
+double rho[vn_l + 1];  // 变量节点的度分布概率
+double lambda[cn_l + 1];  // 校验节点的度分布概率
 double messages[dim];  // 输入消息数组
 
 // 获取惯性权重
@@ -139,7 +136,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
 // 获取初始最优值
 void getInitBest(int sizePop, const double fitness[], const double pop[][dim],
                  double gbestPop[], double *gbestFitness,
-                 double pbestPop[], double pbestFitness[]) {
+                 double pbestPop[][dim], double pbestFitness[]) {
     int maxIdx = 0;                 
     for (int i = 1; i < sizePop; ++i) {
         if (fitness[i] > fitness[maxIdx]) {
@@ -148,7 +145,9 @@ void getInitBest(int sizePop, const double fitness[], const double pop[][dim],
     }   //看是哪一个粒子搜索到了最佳值
     
     *gbestFitness = fitness[maxIdx];
-    gbestPop = pop[maxIdx];
+    for(int i = 0; i < sizePop; ++i){
+        gbestPop[i] =  pop[maxIdx][i];
+    }
 
     for (int i = 0; i < sizePop; ++i) {
         pbestFitness[i] = fitness[i];
@@ -198,7 +197,7 @@ void update_particles(int sizePop, double pop[][dim], double v[][dim], double fi
     // 更新适应度和最优解
     for (int i = 0; i < sizePop; ++i) {
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
-                          vn_edge_portion, cn_edge_portion, vn_len, cn_len);
+                          vn_edge_portion, cn_edge_portion, vn_l, cn_l);
         if (fitness[i] > pbestFitness[i]) {
             pbestFitness[i] = fitness[i];
             for(int k = 0; k < dim; ++k){

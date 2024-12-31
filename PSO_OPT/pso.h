@@ -14,11 +14,10 @@
 #define all_len 150
 #define vn_l 100
 #define cn_l 50
+#define dim 150
 
-
-extern int vn_len;
-extern int cn_len;
-extern const int dim;
+// extern int vn_l;
+// extern int cn_l;
 
 extern double Ecn[cn_l], Evn[vn_l];
 extern double vn_degree[vn_l], cn_degree[cn_l];
@@ -26,7 +25,7 @@ extern double vn_edge_portion[vn_l], cn_edge_portion[cn_l];
 
 extern double rho[vn_l + 1];  // 变量节点的度分布概率
 extern double lambda[cn_l + 1];  // 校验节点的度分布概率
-extern double messages[cn_l];  // 输入消息数组
+extern double messages[dim];  // 输入消息数组
 
 double getWeight();
 void getLearningRate(double lr[2]);
@@ -45,7 +44,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                 int vn_len, int cn_len);
 void getInitBest(int sizePop, const double fitness[], const double pop[][dim],
                  double gbestPop[], double *gbestFitness,
-                 double pbestPop[], double pbestFitness[]);
+                 double pbestPop[][dim], double pbestFitness[]);
 int iterative_snr_threshold(double SIGMA, int key, double *Ecn, 
                             double *Evn, double *vn_degree, double *cn_degree, 
                             double *vn_edge_portion, double *cn_edge_portion, 
