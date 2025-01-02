@@ -40,14 +40,14 @@ int getSizePop() {
 
 // 粒子位置范围
 void getRangePop(double rangePop[2]) {
-    rangePop[0] = -2 * PI;
-    rangePop[1] = 2 * PI;
+    rangePop[0] = 0;
+    rangePop[1] = 1;
 }
 
 // 粒子速度范围
 void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -0.5;
-    rangeSpeed[1] = 0.5;
+    rangeSpeed[0] = -0.2;
+    rangeSpeed[1] = 0.2;
 }
 
 
@@ -78,7 +78,7 @@ int iterative_snr_threshold
     }
 }
 
-//损失函数
+//归一化函数
 void normalize_distribution(double *dist, int len) {   
     double sum = 0.0;
     for (int i = 0; i < len; i++) {
@@ -86,6 +86,36 @@ void normalize_distribution(double *dist, int len) {
     }
     for (int i = 0; i < len; i++) {
         dist[i] /= sum;
+    }
+}
+
+// pop2DegAndPortion函数
+// 把rho和lambda中的格式换成func需要的一个度对应一个比例的格式
+void pop2DegAndPortion(double *pos, int len, int mode) {
+    int cn_cnt = 0;
+    int vn_cnt = 0;
+    if(mode == 1){  
+        //vn
+        for (int i = 0; i < len; i++) {
+            if(pos[i] > 0)
+            {
+                cn_degree[cn_cnt] = i;
+                cn_edge_portion[cn_cnt] = pos[i];
+                cn_cnt ++;
+            }
+        }
+    }else if(mode == 2){
+        //cn
+        for (int i = 0; i < len; i++) {
+            if(pos[i] > 0)
+            {
+                vn_degree[vn_cnt] = i;
+                vn_edge_portion[vn_cnt] = pos[i];
+                vn_cnt ++;
+            }
+        }
+    }else{
+        printf("wrong mode!\n");
     }
 }
 
@@ -105,14 +135,18 @@ double func(const double x[], double *Ecn, double *Evn,
 
     normalize_distribution(rho, cn_len);
     normalize_distribution(lambda, vn_len);
+
+    pop2DegAndPortion(rho, cn_len, 1);
+    pop2DegAndPortion(lambda, vn_len, 2);
     
     // 使用信道解码中的逻辑来计算SNR
     double snr_threshold = iterative_snr_threshold(SIGMA_TARGET, 1, Ecn, Evn, 
                                                    vn_degree, cn_degree, 
                                                    vn_edge_portion, cn_edge_portion, 
                                                    vn_len, cn_len);
+   // printf("snr_threshold = %f\n",snr_threshold);
     double shannon_limit = compute_shannon_limit(compute_code_rate());
-    
+    //printf("shannon_limit = %f\n",shannon_limit);
     // 目标是最小化SNR和香农极限的差距
     return fabs(snr_threshold - shannon_limit);
 }
@@ -125,8 +159,8 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                 int vn_len, int cn_len) {
     for (int i = 0; i < sizePop; ++i) {
         for(int k = 0; k < dim; ++k) {
-            pop[i][k] = (rand() / (double)RAND_MAX - 0.5) * rangePop[1] * 2;
-            v[i][k] = (rand() / (double)RAND_MAX - 0.5) * rangeSpeed[1] * 2;
+            pop[i][k] = rand() / (double)RAND_MAX * rangePop[1];
+            v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];
         }
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
@@ -173,7 +207,7 @@ void update_particles(int sizePop, double pop[][dim], double v[][dim], double fi
     // gbestPop  dim个自变量的全局最优解
     double lr[2];
     getLearningRate(lr);
-    double rangeSpeed[2] = {-0.5, 0.5};   // 速度的上下限
+    double rangeSpeed[2] = {-0.2, 0.2};   // 速度的上下限
     double rangePop[2] = {0, 1};   //位置的上下限
 
     for (int i = 0; i < sizePop; ++i) {
@@ -198,6 +232,7 @@ void update_particles(int sizePop, double pop[][dim], double v[][dim], double fi
     for (int i = 0; i < sizePop; ++i) {
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, vn_l, cn_l);
+        //printf("now fitness i = %f\n", fitness[i]);
         if (fitness[i] > pbestFitness[i]) {
             pbestFitness[i] = fitness[i];
             for(int k = 0; k < dim; ++k){

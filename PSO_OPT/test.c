@@ -22,12 +22,17 @@ int main() {
     getRangeSpeed(rangeSpeed);
 
     // 粒子群优化初始化
-    // 我目前
     double pop[sizePop][dim], v[sizePop][dim], fitness[sizePop];    
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion, 
-            vn_l, cn_l);
+          vn_l, cn_l);
     
+    for (int i = 0; i < sizePop; ++i) {
+        for(int k = 0; k < dim; ++k) {
+           printf("pop[%d][%d] = %f\n",i,k,pop[i][k]);
+        }
+    }
+
     // 初始最优解
     double gbestPop[sizePop], gbestFitness;    
     double pbestPop[sizePop][dim], pbestFitness[sizePop];
@@ -38,7 +43,7 @@ int main() {
     // 粒子群优化迭代过程
     for (int gen = 0; gen < maxGen; ++gen) {
         update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
-        printf(" %d: Best Fitness = %f\n", gen, gbestFitness);
+      //  printf(" %d: Best Fitness = %f\n", gen, gbestFitness);
     }
     
     // 输出优化后的结果

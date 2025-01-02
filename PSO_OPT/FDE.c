@@ -23,12 +23,14 @@ void initialize_degree_distributions() {
 double compute_code_rate() {    
     double sum_rho = 0.0, sum_lambda = 0.0; 
     for (int i = 2; i <= vn_l; i++) {  
-        sum_rho += rho[i];    
+        sum_rho += i * rho[i];    
     }   
     for (int i = 2; i <= cn_l; i++) {
-        sum_lambda += lambda[i];
+        sum_lambda += i * lambda[i];
     }
+    printf("now cr = %f\n",1.0 - (sum_rho / sum_lambda) );
     return 1.0 - (sum_rho / sum_lambda);
+
 }
 
 // 变量节点更新
