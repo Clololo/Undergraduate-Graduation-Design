@@ -62,7 +62,12 @@
     "stdbool.h": "c",
     "stdlib.h": "c",
     "random": "c",
-    "value.h": "c"
+    "value.h": "c",
+    "compare": "c",
+    "functional": "c",
+    "type_traits": "c",
+    "cmath": "c",
+    "complex": "c"
   },
   "python.terminal.activateEnvironment": true
 }

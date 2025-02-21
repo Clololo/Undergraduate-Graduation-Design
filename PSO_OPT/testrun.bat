@@ -13,22 +13,22 @@ REM 运行生成的程序
 test.exe
 
 
-rem 检查 Python 是否安装
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: Python is not installed or not in PATH.
-    pause
-    exit /b
-)
+@REM rem 检查 Python 是否安装
+@REM python --version >nul 2>&1
+@REM if %errorlevel% neq 0 (
+@REM     echo Error: Python is not installed or not in PATH.
+@REM     pause
+@REM     exit /b
+@REM )
 
-rem 运行 Python 脚本
-python ../draw/PSO/psoOptResDrawing.py
+@REM rem 运行 Python 脚本
+@REM python ../draw/PSO/psoOptResDrawing.py
 
-if %errorlevel% neq 0 (
-    echo Error: Failed to run Python script.
-    pause
-    exit /b
-)
+@REM if %errorlevel% neq 0 (
+@REM     echo Error: Failed to run Python script.
+@REM     pause
+@REM     exit /b
+@REM )
 
-echo All tasks completed successfully.
-pause
+@REM echo All tasks completed successfully.
+@REM pause

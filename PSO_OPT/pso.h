@@ -4,7 +4,7 @@
 #define PI 3.141592653589793
 #define EPSILON 1e-6      // 收敛阖值
 #define STEP_SIZE 0.1     // 拉普拉斯变换步长
-#define SIGMA_TARGET 1.0  // 目标信噪比（可根据香农极限调整）
+#define SIGMA_TARGET 0.1  // 目标信噪比（可根据香农极限调整）  这里模拟20dB噪声
 #define MAX_ITER 1000
 #define PE_THRESHOLD 1e-5
 #define SIGMA_INC 1e-3
@@ -14,7 +14,7 @@
 #define all_len 150
 #define vn_l 100
 #define cn_l 50
-#define dim 150
+#define dim (vn_l + cn_l)/10 - 2
 
 // extern int vn_l;
 // extern int cn_l;

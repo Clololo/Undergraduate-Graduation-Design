@@ -22,12 +22,22 @@ void initialize_degree_distributions() {
 // 计算码率 R   
 double compute_code_rate() {    
     double sum_rho = 0.0, sum_lambda = 0.0; 
+    double rhosum = 0.0;
+    double lamsum = 0.0;
     for (int i = 2; i <= vn_l; i++) {  
         sum_rho += i * rho[i];    
     }   
     for (int i = 2; i <= cn_l; i++) {
         sum_lambda += i * lambda[i];
     }
+    // for(int i = 2; i <= vn_l; i++) {
+    //     rhosum += rho[i];
+    // }
+    // for(int i = 2; i < cn_l; i++) {
+    //     lamsum += lambda[i];
+    // }
+    
+    printf("now rhosum = %f lamsum = %f\n",rhosum,lamsum);
     printf("now cr = %f\n",1.0 - (sum_rho / sum_lambda) );
     return 1.0 - (sum_rho / sum_lambda);
 
@@ -51,10 +61,11 @@ double check_node_update(double sigma) {
     return result;
 }
 
-// 计算香农极限
+// 计算香农极限  
+//TODO: 本公式缺少依据，需要修改
 double compute_shannon_limit(double code_rate) {
     return sqrt(2.0 * code_rate);  // 根据香农论，极限 σ = \sqrt{2R}
-}
+}  
 
 // 计算消息的概率密度函数（假设为正态分布）
 double f_L(double L) {

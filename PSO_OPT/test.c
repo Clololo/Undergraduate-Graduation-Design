@@ -6,7 +6,7 @@
 #include "pso.h"
 #include "../tools/print_tool.h"
 
-
+// const int dim = (vn_l + cn_l)/10 - 2;
 
 int main() {
     srand(time(NULL));
@@ -22,17 +22,15 @@ int main() {
     getRangeSpeed(rangeSpeed);
 
     // 粒子群优化初始化
-    double pop[sizePop][dim], v[sizePop][dim], fitness[sizePop];    
+    //pop数组定义：
+    //0 - vn_l/10-2 ： 校验节点度 2 - vn_l/10
+    //vn_l/10 - 1 ~ vn_l/10+cn_l/10-2： 变量节点
+    double pop[sizePop][dim], v[sizePop][dim], 0fitness[sizePop];    
+
+
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion, 
           vn_l, cn_l);
-    
-    for (int i = 0; i < sizePop; ++i) {
-        for(int k = 0; k < dim; ++k) {
-           printf("pop[%d][%d] = %f\n",i,k,pop[i][k]);
-        }
-    }
-
     // 初始最优解
     double gbestPop[sizePop], gbestFitness;    
     double pbestPop[sizePop][dim], pbestFitness[sizePop];
@@ -41,6 +39,8 @@ int main() {
     int lastBest = -1;
     int repeCounter = 0;
     // 粒子群优化迭代过程
+
+
     for (int gen = 0; gen < maxGen; ++gen) {
         update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
       //  printf(" %d: Best Fitness = %f\n", gen, gbestFitness);

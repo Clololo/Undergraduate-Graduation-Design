@@ -6,7 +6,6 @@
 #include "pso.h"
 #include "GA.h"
 
-
 //const int dim = 150;
 
 double Ecn[cn_l], Evn[vn_l];
@@ -16,6 +15,7 @@ double vn_edge_portion[vn_l], cn_edge_portion[cn_l];
 double rho[vn_l + 1];  // 变量节点的度分布概率
 double lambda[cn_l + 1];  // 校验节点的度分布概率
 double messages[dim];  // 输入消息数组
+
 
 // 获取惯性权重
 double getWeight() {
@@ -60,14 +60,14 @@ int iterative_snr_threshold
     double *cn_degree, 
     double *vn_edge_portion, 
     double *cn_edge_portion, 
-    int vn_len, 
-    int cn_len
+    int vn_deg_len, 
+    int cn_deg_len
 ){
     if(key == GA_MODE){
         return iterative_snr_threshold_GA(SIGMA, Ecn, Evn,\
                                         vn_degree, cn_degree,\
                                         vn_edge_portion, cn_edge_portion,\
-                                        vn_len, cn_len);
+                                        vn_deg_len, cn_deg_len);
     }
     else if(key == DE_MODE){
         return iterative_snr_threshold_FDE(SIGMA);
@@ -94,7 +94,7 @@ void normalize_distribution(double *dist, int len) {
 void pop2DegAndPortion(double *pos, int len, int mode) {
     int cn_cnt = 0;
     int vn_cnt = 0;
-    if(mode == 1){  
+    if(mode == 1){ 
         //vn
         for (int i = 0; i < len; i++) {
             if(pos[i] > 0)
@@ -125,27 +125,35 @@ double func(const double x[], double *Ecn, double *Evn,
             double *vn_edge_portion, double *cn_edge_portion, 
             int vn_len, int cn_len) {
 
-    for (int i = 0; i < cn_len; i++) {
-        rho[i] = x[i];  // 从粒子数组中提取校验节点度分布
+    for (int i = 0; i <= vn_len/10-2; i++) {
+        rho[i+2] = x[i];  // 从粒子数组中提取校验节点度分布
     }
 
-    for (int i = 0; i < vn_len; i++) {
-        lambda[i] = x[cn_len + i];  // 从粒子数组中提取变量节点度分布
+    for (int i = vn_len/10-1; i <= (vn_len+cn_len)/10 - 2; i++) {
+        lambda[i+2] = x[i];  // 从粒子数组中提取变量节点度分布
     }
 
     normalize_distribution(rho, cn_len);
     normalize_distribution(lambda, vn_len);
 
+    // for(int i = 0 ; i < cn_len; i++){
+    //     printf("rho[%d] = %f ",i,rho[i]);
+    // }
+
     pop2DegAndPortion(rho, cn_len, 1);
     pop2DegAndPortion(lambda, vn_len, 2);
-    
+
     // 使用信道解码中的逻辑来计算SNR
+    int vn_deg_len = cn_l / 10;
+    int cn_deg_len = vn_l / 10;
     double snr_threshold = iterative_snr_threshold(SIGMA_TARGET, 1, Ecn, Evn, 
                                                    vn_degree, cn_degree, 
                                                    vn_edge_portion, cn_edge_portion, 
-                                                   vn_len, cn_len);
+                                                   vn_deg_len, cn_deg_len);
+    
    // printf("snr_threshold = %f\n",snr_threshold);
-    double shannon_limit = compute_shannon_limit(compute_code_rate());
+    double shannon_limit = compute_shannon_limit(compute_code_rate());   //码率计算近似的香农极限
+
     //printf("shannon_limit = %f\n",shannon_limit);
     // 目标是最小化SNR和香农极限的差距
     return fabs(snr_threshold - shannon_limit);
@@ -157,7 +165,9 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion, 
                 int vn_len, int cn_len) {
+   // printf("init begin\n");
     for (int i = 0; i < sizePop; ++i) {
+        //printf("pop%d\n",i);
         for(int k = 0; k < dim; ++k) {
             pop[i][k] = rand() / (double)RAND_MAX * rangePop[1];
             v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];
@@ -165,6 +175,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, vn_len, cn_len);
     }
+    printf("init end\n");
 }
 
 // 获取初始最优值
@@ -196,7 +207,7 @@ double getDeclineRate(int iter,int now){
 }
 
 // 粒子群优化更新函数
-void update_particles(int sizePop, double pop[][dim], double v[][dim], double fitness[],
+void 80.8update_particles(int sizePop, double pop[][dim], double v[][dim], double fitness[],
                       double pbestPop[][dim], double pbestFitness[], double gbestPop[], 
                       double *gbestFitness, int iter, int now_iter) {
 
