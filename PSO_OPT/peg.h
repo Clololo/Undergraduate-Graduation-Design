@@ -5,6 +5,8 @@
 #include <string>
 #include <algorithm>
 #include <stdexcept>
+#include <queue>
+#include <unordered_set>
 
 class Node {
 public:
@@ -16,7 +18,30 @@ public:
 
     Node(int idx, int identifier, const std::string& lbl, const std::string& grp)
         : matrixIdx(idx), id(identifier), label(lbl), group(grp) {}
+    
+    bool operator==(const Node& other) const {
+        return id == other.id && label == other.label && group == other.group;
+    }
+
+    //打印node的所有信息
+    void print() const {
+        std::cout << "Node ID: " << id << "\n"
+                    << "Matrix Index: " << matrixIdx << "\n"
+                    << "Label: " << label << "\n"
+                    << "Group: " << group << "\n"
+                    << "Connections: ";
+
+        if (connections.empty()) {
+            std::cout << "None";
+        } else {
+            for (const auto* conn : connections) {
+                std::cout << conn->id << " "; // 打印与此节点相连的其他节点的ID
+            }
+        }
+        std::cout << "\n";
+    }
 };
+
 
 class TannerGraph {
 public:
@@ -73,6 +98,7 @@ public:
             edges.push_back({checkNode->id, symbolNode->id});
             matrix[checkNode->matrixIdx][symbolNode->matrixIdx] = 1;
         }
+
     }
 
     Node* getCheckNodeWithLowestDegree() {
@@ -85,82 +111,148 @@ public:
             [](Node* a, Node* b) { return a->connections.size() < b->connections.size(); });
     }
 
+
+    void printAdjacencyMatrix(int m, int n) {
+        std::vector<std::vector<int>> adjMatrix(m, std::vector<int>(n, 0));
+        for (const auto& edge : this->edges) {
+            adjMatrix[edge.first-n][edge.second] = 1;  // 由边 (edge.first -> edge.second) 设置为 1
+        }
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                std::cout << adjMatrix[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
     // SubGraph class definition
     class SubGraph {
         public:
             Node* rootNode;
             TannerGraph* _tannerGraph;
-            Node* treeRoot;
+            struct TreeNode {
+                Node* ref;
+                int id;
+                std::string label;
+                std::string group;
+                int level;
+                std::vector<TreeNode*> children;
+        
+                TreeNode(Node* node, int lvl)
+                    : ref(node), id(node->id), label(node->label), group(node->group), level(lvl) {}
+            };
+
+            TreeNode* treeRoot;
             int level;
     
             SubGraph(TannerGraph* tannerGraph, int rootNodeId, int depth) {
-                if (depth < 0) throw std::invalid_argument("depth cannot be negative!");
+               if (depth < 0) throw std::invalid_argument("depth cannot be negative!");
     
                 rootNode = tannerGraph->getNode(rootNodeId);
+
+                if (!rootNode) throw std::invalid_argument("Root node not found in graph");
+                
                 _tannerGraph = tannerGraph;
     
-                treeRoot = new Node(rootNode->matrixIdx, rootNode->id, rootNode->label, rootNode->group);
-                treeRoot->connections = rootNode->connections;
-                treeRoot->group = rootNode->group;
+                treeRoot = new TreeNode(rootNode, 0);
     
-                int currentLevel = 0;
-                std::vector<Node*> usedNodes = {treeRoot};
-                std::vector<Node*> queue = {treeRoot};
+                std::vector<TreeNode*> usedNodes = {treeRoot};
+                std::queue<TreeNode*> queue;
+                queue.push(treeRoot);
+
+                level = 0;
     
-                while (!queue.empty() && currentLevel < depth) {
-                    ++currentLevel;
-                    std::vector<Node*> levelQueue;
-                    for (auto* node : queue) {
-                        for (auto* child : node->connections) {
-                            if (std::find(usedNodes.begin(), usedNodes.end(), child) == usedNodes.end()) {
-                                levelQueue.push_back(child);
-                                usedNodes.push_back(child);
-                            }
+                while (!queue.empty() && level < depth) {
+                    ++level;
+                    std::queue<TreeNode*> levelQueue;
+                    while (!queue.empty()) {
+                        TreeNode* node = queue.front();
+                        queue.pop();
+
+                        std::vector<TreeNode*> childrenNodes;
+
+                        for (Node* conn : node->ref->connections) {
+                            Node* child = tannerGraph->getNode(conn->id);  // 确保从 TannerGraph 获取节点
+                            if (std::find_if(usedNodes.begin(), usedNodes.end(),
+                                [child](TreeNode* n) { return n->id == child->id; }) == usedNodes.end()) {
+                                
+                                TreeNode* newChild = new TreeNode(child, level);
+                                childrenNodes.push_back(newChild);
+                                levelQueue.push(newChild);
+                                usedNodes.push_back(newChild);
+                                }
                         }
+                        node->children = childrenNodes;
                     }
+                    // Move to the next level
                     queue = levelQueue;
                 }
     
-                level = currentLevel;
+                this->level = level;
             }
             
             std::vector<Node*> coveredCheckNodes() {
                 std::vector<Node*> coveredCheckNodes;
-                std::vector<Node*> queue = {treeRoot};
+                std::queue<TreeNode*> queue;
+                queue.push(treeRoot); 
+                
                 while (!queue.empty()) {
-                    Node* node = queue.back();
-                    queue.pop_back();
+                    TreeNode* node = queue.front();
+                    queue.pop();
+                    
+                    // 如果是check节点，则加入到coveredCheckNodes
                     if (node->group == "check") {
-                        coveredCheckNodes.push_back(node);
+                        coveredCheckNodes.push_back(node->ref);
+                       // node->print(); // 打印该节点的信息
                     }
-                    for (auto* child : node->connections) {
-                        queue.push_back(child);
+                    
+                    // 遍历子节点
+                    for (TreeNode* child : node->children) {
+                        queue.push(child);
                     }
                 }
+                
                 return coveredCheckNodes;
             }
-            
+
             bool allCheckNodesCovered() {
+                //printf("cover:%d   all:%d\n",coveredCheckNodes().size(),_tannerGraph->checkNodes.size());
                 return coveredCheckNodes().size() == _tannerGraph->checkNodes.size();
             }
-    
+
             Node* getUCCheckNodeWithLowestDegree() {
                 std::vector<Node*> uncoveredCheckNodes;
                 for (auto* node : _tannerGraph->checkNodes) {
-                    if (std::find(coveredCheckNodes().begin(), coveredCheckNodes().end(), node) == coveredCheckNodes().end()) {
+                    bool coverFlag = false;
+                    for(const auto* cvnode : coveredCheckNodes()){
+                        if(node == cvnode){
+                            coverFlag = true;break;
+                        }
+                    }
+                    if (coverFlag == false) {
+                        //node 不在coveredCheckNodes里
                         uncoveredCheckNodes.push_back(node);
                     }
+                }   
+                if (uncoveredCheckNodes.empty()) {
+                    std::cout << "Error: No uncovered check nodes found!\n";   
+                    return nullptr;  
                 }
-                return *std::min_element(uncoveredCheckNodes.begin(), uncoveredCheckNodes.end(),
+            
+                Node* lowestDegreeNode = *std::min_element(
+                    uncoveredCheckNodes.begin(), uncoveredCheckNodes.end(),
                     [](Node* a, Node* b) { return a->connections.size() < b->connections.size(); });
+            
+                // Print the information of the node with the lowest degree
+            
+                return lowestDegreeNode;
             }
         };
 
     SubGraph* getSubGraph(int nodeId, int depth) {
         return new SubGraph(this, nodeId, depth);
     }
-
+    
 };
-
 
 #endif
