@@ -19,15 +19,14 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
         if (iter == 1) {        
             // 计算第一次Ecn和Evn          
             for (int k = 0; k < cn_deg_len; k++) {
-                    
                 //printf("%f \n",cn_degree[k]);    
-                printf("%f\n",1 - phi(2 / (sigma * sigma)));
+                //printf("%f\n",1 - phi(2 / (sigma * sigma)));
                 Ecn[k] = phi_inverse(1 - pow(1 - phi(2 / (sigma * sigma)), cn_degree[k]));          
             }   
             // 计算Ave_CN
             double Ave_CN = 0.0;
             for (int k = 0; k < cn_deg_len; k++) {   //这里应该是不同的节点度数种类数
-                printf("%d %f %f\n",k,cn_edge_portion[k],Ecn[k]);
+               // printf("%d %f %f\n",k,cn_edge_portion[k],Ecn[k]);
                 Ave_CN += cn_edge_portion[k] * Ecn[k];
             }
             // 计算Evn
@@ -39,7 +38,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
             // 计算误比特率Pe
             current_Pe = 0.0;            
             for (int k = 0; k < vn_deg_len; k++) {
-                printf("%f %f\n",vn_edge_portion[k],Evn[k]);
+                //printf("%f %f\n",vn_edge_portion[k],Evn[k]);
                 current_Pe += vn_edge_portion[k] * (1 - normcdf(sqrt(Evn[k] / 2)));
             }
 
@@ -93,4 +92,25 @@ current_Pe = 0.0;
     return sigma;
 }
 
+
+int main() {
+    double sigma = 0.75;
+    double Ecn[2] = {0}, Evn[4] = {0};
+    
+    double vn_degree[] = {1, 2, 3, 5};  // dv - 1
+    double vn_edge_portion[] = {0.332, 0.247, 0.110, 0.311};
+    double cn_degree[] = {5, 6};  // dc - 1
+    double cn_edge_portion[] = {0.766, 0.234};
+
+    int vn_deg_len = sizeof(vn_degree) / sizeof(vn_degree[0]);
+    int cn_deg_len = sizeof(cn_degree) / sizeof(cn_degree[0]);
+
+    double threshold_sigma = iterative_snr_threshold_GA(sigma, Ecn, Evn, 
+                                vn_degree, cn_degree, 
+                                vn_edge_portion, cn_edge_portion, 
+                                vn_deg_len, cn_deg_len);
+
+    printf("SNR threshold (sigma): %lf\n", threshold_sigma);
+    return 0;
+}
 
