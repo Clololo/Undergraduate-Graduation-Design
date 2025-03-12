@@ -8,7 +8,6 @@
 // double lambda[DC + 1];  // 校验节点的度分布概率
 // double messages[N];  // 输入消息数组
 
-void initialize_degree_distributions();
 double compute_code_rate();
 double variable_node_update(double sigma);
 double check_node_update(double sigma);

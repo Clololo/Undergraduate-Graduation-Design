@@ -1,7 +1,7 @@
 @echo off
 
 REM 编译所有源文件并生成可执行文件
-gcc -o test test.c pso.c FDE.c GA.c ../tools/math_tools.c ../tools/print_tool.c
+gcc -o test test.c pso.c FDE.c GA.c ../tools/print_tool.c
 
 REM 检查是否编译成功
 if %errorlevel% neq 0 (

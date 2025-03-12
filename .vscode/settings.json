@@ -114,7 +114,8 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "unordered_set": "cpp",
-    "math_tools.h": "c"
+    "math_tools.h": "c",
+    "string.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

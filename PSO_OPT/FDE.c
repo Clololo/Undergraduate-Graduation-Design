@@ -10,38 +10,9 @@
 // 从度2开始是因为LDPC不设计度为1的节点
 
 
-void initialize_degree_distributions() {    
-    for (int i = 2; i <= vn_l; i++) {     
-        rho[i] = 1.0 / (vn_l - 1);  // 从度 2 开始    
-    }   
-    for (int i = 2; i <= cn_l; i++) { 
-        lambda[i] = 1.0 / (cn_l - 1);  // 从度 2 开始 
-    }   
-}   
 
-// 计算码率 R   
-double compute_code_rate() {    
-    double sum_rho = 0.0, sum_lambda = 0.0; 
-    double rhosum = 0.0;
-    double lamsum = 0.0;
-    for (int i = 2; i <= vn_l; i++) {  
-        sum_rho += i * rho[i];    
-    }   
-    for (int i = 2; i <= cn_l; i++) {
-        sum_lambda += i * lambda[i];
-    }
-    // for(int i = 2; i <= vn_l; i++) {
-    //     rhosum += rho[i];
-    // }
-    // for(int i = 2; i < cn_l; i++) {
-    //     lamsum += lambda[i];
-    // }
-    
-    printf("now rhosum = %f lamsum = %f\n",rhosum,lamsum);
-    printf("now cr = %f\n",1.0 - (sum_rho / sum_lambda) );
-    return 1.0 - (sum_rho / sum_lambda);
 
-}
+
 
 // 变量节点更新
 double variable_node_update(double sigma) {

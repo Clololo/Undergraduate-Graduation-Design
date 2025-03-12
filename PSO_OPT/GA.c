@@ -8,6 +8,7 @@
 
 
 // SNR阈值计算（使用高斯近似）
+// 这里的deg_len表示有几个不同的度取值
 double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn, 
                                 double *vn_degree, double *cn_degree, 
                                 double *vn_edge_portion, double *cn_edge_portion, 
@@ -93,24 +94,24 @@ current_Pe = 0.0;
 }
 
 
-int main() {
-    double sigma = 0.75;
-    double Ecn[2] = {0}, Evn[4] = {0};
+// int main() {
+//     double sigma = 0.75;
+//     double Ecn[2] = {0}, Evn[4] = {0};
     
-    double vn_degree[] = {1, 2, 3, 5};  // dv - 1
-    double vn_edge_portion[] = {0.332, 0.247, 0.110, 0.311};
-    double cn_degree[] = {5, 6};  // dc - 1
-    double cn_edge_portion[] = {0.766, 0.234};
+//     double vn_degree[] = {2};  // dv - 1
+//     double vn_edge_portion[] = {1};
+//     double cn_degree[] = {4};  // dc - 1
+//     double cn_edge_portion[] = {1};
 
-    int vn_deg_len = sizeof(vn_degree) / sizeof(vn_degree[0]);
-    int cn_deg_len = sizeof(cn_degree) / sizeof(cn_degree[0]);
+//     int vn_deg_len = sizeof(vn_degree) / sizeof(vn_degree[0]);
+//     int cn_deg_len = sizeof(cn_degree) / sizeof(cn_degree[0]);
 
-    double threshold_sigma = iterative_snr_threshold_GA(sigma, Ecn, Evn, 
-                                vn_degree, cn_degree, 
-                                vn_edge_portion, cn_edge_portion, 
-                                vn_deg_len, cn_deg_len);
+//     double threshold_sigma = iterative_snr_threshold_GA(sigma, Ecn, Evn, 
+//                                 vn_degree, cn_degree, 
+//                                 vn_edge_portion, cn_edge_portion, 
+//                                 vn_deg_len, cn_deg_len);
 
-    printf("SNR threshold (sigma): %lf\n", threshold_sigma);
-    return 0;
-}
+//     printf("SNR threshold (sigma): %lf\n", threshold_sigma);
+//     return 0;
+// }
 

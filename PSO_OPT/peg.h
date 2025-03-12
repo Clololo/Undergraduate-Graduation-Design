@@ -124,7 +124,7 @@ public:
             std::cout << std::endl;
         }
     }
-
+    
     // SubGraph class definition
     class SubGraph {
         public:
