@@ -6,13 +6,11 @@
 #include "pso.h"
 #include "../tools/print_tool.h"
 
-#define maxGen 50
-#define sizePop 20
+#define maxGen 5
+#define sizePop 5
 // const int dim = (vn_l + cn_l)/10 - 2;
 int main() {
     srand(time(NULL));
-    // 初始化度分布  初始度数全为2
-    initialize_degree_distributions();
     // 粒子群优化的参数
     double rangePop[2], rangeSpeed[2];
     getRangePop(rangePop);
@@ -20,16 +18,15 @@ int main() {
 
     //粒子群优化初始化
     double pop[sizePop][dimlimit], v[sizePop][dimlimit], fitness[sizePop];    
-
+    printf("here");
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
-            vn_degree, cn_degree, vn_edge_portion, cn_edge_portion, 
-          vn_l, cn_l);
-
+            vn_degree, cn_degree, vn_edge_portion, cn_edge_portion);
+    printf("here");
     // 初始最优解
     double gbestPop[sizePop], gbestFitness;    
     double pbestPop[sizePop][dimlimit], pbestFitness[sizePop];
     getInitBest(sizePop, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
-
+    printf("here");
     int lastBest = -1;
     int repeCounter = 0;
 
