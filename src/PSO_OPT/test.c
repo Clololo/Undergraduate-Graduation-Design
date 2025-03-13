@@ -18,11 +18,12 @@ int main() {
     double rangePop[2], rangeSpeed[2];
     getRangePop(rangePop);
     getRangeSpeed(rangeSpeed);
-
+    
     //粒子群优化初始化
     double pop[sizePop][dimlimit], v[sizePop][dimlimit], fitness[sizePop];    
     initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion);
+
     // 初始最优解
     double gbestPop[sizePop], gbestFitness;    
     double pbestPop[sizePop][dimlimit], pbestFitness[sizePop];
@@ -56,6 +57,8 @@ int main() {
     }
     printf("\n");
 
+    printf("the best R = %f\n",compute_code_rate());
+    
     pso_save_to_csv("../out/results.csv", rho, lambda, cn_deg_max, vn_deg_max);
 
     clock_t end_time = clock();
