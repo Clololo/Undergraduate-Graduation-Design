@@ -1,15 +1,14 @@
 #ifndef PSO_H
 #define PSO_H
 
-#define PI 3.141592653589793
-#define EPSILON 1e-6      // 收敛阖值
+#define EPSILON 1e-6      // 收敛阈值
 #define STEP_SIZE 0.1     // 拉普拉斯变换步长
-#define SIGMA_TARGET 0.1  // 目标信噪比（可根据香农极限调整）  这里模拟20dB噪声
-#define MAX_ITER 1000
+#define SIGMA_TARGET 0.8  // 初始模拟信噪比（可根据香农极限调整）  
 #define PE_THRESHOLD 1e-5
 #define SIGMA_INC 1e-3
 #define GA_MODE 1
 #define DE_MODE 2
+#define MAX_ITER 500
 
 //变量节点和校验节点的数量
 #define all_len 192 
@@ -50,13 +49,14 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
 void getInitBest(int sizePop, const double fitness[], const double pop[][dimlimit],
                  double gbestPop[], double *gbestFitness,
                  double pbestPop[][dimlimit], double pbestFitness[]);
-int iterative_snr_threshold(double SIGMA, int key, double *Ecn, 
+double iterative_snr_threshold(double SIGMA, int key, double *Ecn, 
                             double *Evn, double *vn_degree, double *cn_degree, 
                             double *vn_edge_portion, double *cn_edge_portion, 
                             int vn_len, int cn_len);
 void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit], double fitness[],
                       double pbestPop[][dimlimit], double pbestFitness[], double gbestPop[], 
                       double *gbestFitness, int iter, int now_iter);    
+void getFinalValue(const double pop[]);
 
 #endif
 

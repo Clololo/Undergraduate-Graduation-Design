@@ -1,7 +1,7 @@
 @echo off
 
 REM 编译所有源文件并生成可执行文件
-gcc -o test test.c pso.c FDE.c GA.c ../tools/print_tool.c
+gcc -o ../bin/PSOtest test.c pso.c FDE.c GA.c ../tools/print_tool.c
 
 REM 检查是否编译成功
 if %errorlevel% neq 0 (
@@ -10,7 +10,9 @@ if %errorlevel% neq 0 (
 )
 
 REM 运行生成的程序
-test.exe
+cd ..
+bin\PSOtest.exe
+cd -  # 回到之前的目录
 
 
 @REM rem 检查 Python 是否安装

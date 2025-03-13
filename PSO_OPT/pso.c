@@ -52,7 +52,7 @@ void getRangeSpeed(double rangeSpeed[2]) {
     rangeSpeed[1] = 0.2;
 }
 
-int iterative_snr_threshold
+double iterative_snr_threshold
     (double SIGMA, 
     int key, 
     double *Ecn, 
@@ -232,12 +232,14 @@ double func(const double x[], double *Ecn, double *Evn,
                                                    vn_degree, cn_degree, 
                                                    vn_edge_portion, cn_edge_portion, 
                                                    vn_deg_len, cn_deg_len);
+                        
     
-    printf("snr_threshold = %f\n",snr_threshold);
+  //  printf("snr_threshold = %f\n",snr_threshold);
     double shannon_limit = calculate_sigma_shannon(compute_code_rate());   //码率计算近似的香农极限
-    printf("shannon_limit = %f\n",shannon_limit);
+  //  printf("shannon_limit = %f\n",shannon_limit);
 
     // 目标是最小化SNR和香农极限的差距,这个值要尽可能小！！
+   // printf("sigma_star = %f\n",fabs(snr_threshold - shannon_limit));
     return fabs(snr_threshold - shannon_limit);
 }
 
@@ -385,3 +387,14 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
         }
     }
 }      
+
+void getFinalValue(const double pop[]){
+    double sum_exp_theta_r = 0.0;
+    double sum_exp_theta_l = 0.0;
+    for(int i = 0; i < dim; i++){
+        if(i >= 2 && i < cn_deg_max) sum_exp_theta_r += pop[i];
+        else if(i >= cn_deg_max + 2) sum_exp_theta_l += pop[i];
+    }
+    update_rho(sum_exp_theta_r,pop);
+    update_lambda(sum_exp_theta_l,pop);
+}

@@ -1,7 +1,7 @@
 @echo off
 
 REM 编译所有源文件并生成可执行文件
-gcc -o GA_test GA.c math_tools.c 
+gcc -o ../bin/ GA.c math_tools.c 
 
 REM 检查是否编译成功
 if %errorlevel% neq 0 (
@@ -10,7 +10,9 @@ if %errorlevel% neq 0 (
 )
 
 REM 运行生成的程序
-main.exe
+cd ..
+bin\GA_test.exe
+cd -  # 回到之前的目录
 
 REM 暂停，以便查看程序输出
 pause

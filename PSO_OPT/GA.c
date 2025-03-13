@@ -13,14 +13,14 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
                                 double *vn_degree, double *cn_degree, 
                                 double *vn_edge_portion, double *cn_edge_portion, 
                                 int vn_deg_len, int cn_deg_len) {
-    double current_Pe;
-    int iter = 1;  
-    //printf("sigma = %lf\n",sigma);    
-    while (iter <= MAX_ITER) {   
-        if (iter == 1) {        
-            // 计算第一次Ecn和Evn          
-            for (int k = 0; k < cn_deg_len; k++) {
-                //printf("%f \n",cn_degree[k]);    
+    double current_Pe;    
+    int iter = 1;      
+    //printf("sigma = %lf\n",sigma);        
+    while (iter <= MAX_ITER) {     
+        if (iter == 1) {            
+            // 计算第一次Ecn和Evn             
+            for (int k = 0; k < cn_deg_len; k++) {  
+                //printf("%f \n",cn_degree[k]);     
                 //printf("%f\n",1 - phi(2 / (sigma * sigma)));
                 Ecn[k] = phi_inverse(1 - pow(1 - phi(2 / (sigma * sigma)), cn_degree[k]));          
             }   
@@ -87,7 +87,7 @@ current_Pe = 0.0;
 
         // 如果达到最大迭代次数
         if (iter > MAX_ITER) {
-            return sigma - SIGMA_INC;
+            return (double)(sigma - SIGMA_INC);
         }
     }
     return sigma;
