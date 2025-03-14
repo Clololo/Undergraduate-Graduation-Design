@@ -7,8 +7,8 @@
 #include <time.h>
 #include "../tools/print_tool.h"
 
-#define maxGen 1000
-#define sizePop 100
+#define maxGen 200
+#define sizePop 30
 // const int dim = (pred_vn_l + pred_cn_l)/10 - 2;
 int main() {
 
@@ -33,6 +33,7 @@ int main() {
 
     // 粒子群优化迭代过程
     for (int gen = 0; gen < maxGen; ++gen) {
+        printf("gen%d\n",gen+1);
         if(gen % 100 == 0) printf("finished %.0f%% \n",(double)(100*(double)gen/(double)maxGen));
         update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
         // printf(" %d: Best Fitness = %f\n", gen, gbestFitness);
@@ -57,7 +58,7 @@ int main() {
     }
     printf("\n");
 
-    printf("the best R = %f\n",compute_code_rate());
+    printf("the best R = %f\n",compute_code_rate(rho, lambda));
     
     pso_save_to_csv("../out/results.csv", rho, lambda, cn_deg_max, vn_deg_max);
 

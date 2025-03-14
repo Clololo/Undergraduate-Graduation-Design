@@ -159,18 +159,19 @@ void pop2DegAndPortion(double *pos, int len, int mode,
 
 // 根据度分布，计算码率 R ，在func中调用
 // 该公式出自文章“The Optimized Scheme for FPGA-based  LDPC codes using Particle Swarm Optimization”
-double compute_code_rate() {    
+// 已修改
+double compute_code_rate(double rho[], double lambda[]) {    
 
     double sum_rho = 0.0, sum_lambda = 0.0;
     for (int j = 1; j <= cn_deg_max; j++) {  
-        sum_rho += rho[j] / (double)j;    
+        sum_rho += rho[j] * (double)j;    
     }   
     for (int i = 1; i <= vn_deg_max; i++) {
-        sum_lambda += lambda[i] / (double)i;
+        sum_lambda += lambda[i] * (double)i;
     }
 
     // 计算码率 R
-    double R = 1.0 - (sum_rho / sum_lambda);
+    double R = 1.0 - (sum_lambda / sum_rho);
     return R;
 }
 
@@ -235,7 +236,7 @@ double func(const double x[], double *Ecn, double *Evn,
                         
     
   //  printf("snr_threshold = %f\n",snr_threshold);
-    double shannon_limit = calculate_sigma_shannon(compute_code_rate());   //码率计算近似的香农极限
+    double shannon_limit = calculate_sigma_shannon(compute_code_rate(rho, lambda));   //码率计算近似的香农极限
   //  printf("shannon_limit = %f\n",shannon_limit);
 
     // 目标是最小化SNR和香农极限的差距,这个值要尽可能小！！
@@ -277,7 +278,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                           vn_edge_portion, cn_edge_portion, sum_exp_theta_r, sum_exp_theta_l);
 
         //为了限制码率做出的惩罚
-        double R = compute_code_rate();
+        double R = compute_code_rate(rho, lambda);
         fitness[i] += (alpha_penalty * pow(fmax(0, R - pre_code_rate_limit), 2) + beta_penalty * pow(fmax(0, pred_code_rate_lowlimit - R), 2));
     }
 }
@@ -367,7 +368,7 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
                           vn_edge_portion, cn_edge_portion, sum_exp_theta_r[i], sum_exp_theta_l[i]);
         
         //为了限制码率做出的惩罚
-        double R = compute_code_rate();
+        double R = compute_code_rate(rho, lambda);
         fitness[i] += (alpha_penalty * pow(fmax(0, R - pre_code_rate_limit), 2) + beta_penalty * pow(fmax(0, pred_code_rate_lowlimit - R), 2));
 
         //更新粒子最优解

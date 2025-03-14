@@ -41,7 +41,7 @@ double getWeight();
 void getLearningRate(double lr[2]);
 void getRangePop(double rangePop[2]);
 void getRangeSpeed(double rangeSpeed[2]);
-double compute_code_rate();
+double compute_code_rate(double rho[], double lambda[]);
 double calculate_sigma_shannon(double R);
 double func(const double x[], double *Ecn, double *Evn, 
     double *vn_degree, double *cn_degree, 
