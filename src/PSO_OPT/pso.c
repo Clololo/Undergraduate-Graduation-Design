@@ -7,7 +7,7 @@
 #include "GA.h"
 #include <string.h>
 
-double Ecn[cn_l], Evn[vn_l];
+double Ecn[pred_cn_l], Evn[pred_vn_l];
 double vn_degree[dimlimit], cn_degree[dimlimit];
 double vn_edge_portion[dimlimit], cn_edge_portion[dimlimit];
 
@@ -36,8 +36,8 @@ double getWeight() {
 
 // 获取学习因子
 void getLearningRate(double lr[2]) {
-    lr[0] = 0.49445;
-    lr[1] = 1.49445;
+    lr[0] = 0.39445;
+    lr[1] = 0.89445;
 }
 
 // 粒子位置范围，以度数比
@@ -48,8 +48,8 @@ void getRangePop(double rangePop[2]) {
 
 // 粒子速度范围
 void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -0.2;
-    rangeSpeed[1] = 0.2;
+    rangeSpeed[0] = -0.05;
+    rangeSpeed[1] = 0.05;
 }
 
 double iterative_snr_threshold
@@ -162,10 +162,10 @@ void pop2DegAndPortion(double *pos, int len, int mode,
 double compute_code_rate() {    
 
     double sum_rho = 0.0, sum_lambda = 0.0;
-    for (int j = 1; j <= vn_l; j++) {  
+    for (int j = 1; j <= cn_deg_max; j++) {  
         sum_rho += rho[j] / (double)j;    
     }   
-    for (int i = 1; i <= cn_l; i++) {
+    for (int i = 1; i <= vn_deg_max; i++) {
         sum_lambda += lambda[i] / (double)i;
     }
 
@@ -278,9 +278,8 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
 
         //为了限制码率做出的惩罚
         double R = compute_code_rate();
-        fitness[i] += (alpha_penalty * pow(fmax(0, R - 1), 2) + beta_penalty * pow(fmax(0, -R), 2));
+        fitness[i] += (alpha_penalty * pow(fmax(0, R - pre_code_rate_limit), 2) + beta_penalty * pow(fmax(0, pred_code_rate_lowlimit - R), 2));
     }
-    //printf("end");
 }
 
 // 获取初始最优值
@@ -369,7 +368,7 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
         
         //为了限制码率做出的惩罚
         double R = compute_code_rate();
-        fitness[i] += (alpha_penalty * pow(fmax(0, R - 1), 2) + beta_penalty * pow(fmax(0, -R), 2));
+        fitness[i] += (alpha_penalty * pow(fmax(0, R - pre_code_rate_limit), 2) + beta_penalty * pow(fmax(0, pred_code_rate_lowlimit - R), 2));
 
         //更新粒子最优解
         if (fitness[i] < pbestFitness[i]) {

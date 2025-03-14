@@ -17,7 +17,7 @@
 // 变量节点更新
 double variable_node_update(double sigma) {
     double result = 0.0;
-    for (int i = 2; i <= vn_l; i++) {
+    for (int i = 2; i <= pred_vn_l; i++) {
         result += rho[i] * tanh(sigma / 2.0);  // 变量节点的消息更新
     }
     return result;
@@ -26,7 +26,7 @@ double variable_node_update(double sigma) {
 // 校验节点更新
 double check_node_update(double sigma) {
     double result = 0.0;
-    for (int i = 2; i <= cn_l; i++) {
+    for (int i = 2; i <= pred_cn_l; i++) {
         result += lambda[i] * exp(-sigma * i);  // 校验节点的消息更新
     }
     return result;

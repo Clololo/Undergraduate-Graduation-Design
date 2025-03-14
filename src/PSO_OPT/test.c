@@ -7,9 +7,9 @@
 #include <time.h>
 #include "../tools/print_tool.h"
 
-#define maxGen 100
-#define sizePop 30
-// const int dim = (vn_l + cn_l)/10 - 2;
+#define maxGen 1000
+#define sizePop 100
+// const int dim = (pred_vn_l + pred_cn_l)/10 - 2;
 int main() {
 
     clock_t start_time = clock();
@@ -33,7 +33,7 @@ int main() {
 
     // 粒子群优化迭代过程
     for (int gen = 0; gen < maxGen; ++gen) {
-        printf("generation %d\n",gen+1);
+        if(gen % 100 == 0) printf("finished %.0f%% \n",(double)(100*(double)gen/(double)maxGen));
         update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
         // printf(" %d: Best Fitness = %f\n", gen, gbestFitness);
     }
