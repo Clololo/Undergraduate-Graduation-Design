@@ -4,11 +4,13 @@
 #include <time.h>
 #include "FDE.h"
 #include "pso.h"
-#include <time.h>
 #include "../tools/print_tool.h"
+#include "../tools/math_tools.h"
 
 #define maxGen 200
 #define sizePop 30
+
+
 // const int dim = (pred_vn_l + pred_cn_l)/10 - 2;
 int main() {
 
@@ -58,9 +60,21 @@ int main() {
     }
     printf("\n");
 
-    printf("the best R = %f\n",compute_code_rate(rho, lambda));
+    double R = compute_code_rate(rho, lambda);
+    printf("the best R = %f\n",R);
     
-    pso_save_to_csv("../out/results.csv", rho, lambda, cn_deg_max, vn_deg_max);
+    pso_save_to_csv("out/results.csv", rho, lambda, cn_deg_max, vn_deg_max);
+
+    pred_vn_length = pred_code_length;
+    pred_cn_length = approx((double)(pred_vn_length)*(1.0 - R));
+
+    write_number_to_csv("out/pred_vnl.csv", pred_vn_length);
+    write_number_to_csv("out/pred_cnl.csv", pred_cn_length);
+    int edge1 = pegsrc_save_to_csv("out/sim_rho.csv", rho, lambda, pred_cn_length , cn_deg_max, vn_deg_max,  1);
+    int edge2 = pegsrc_save_to_csv("out/sim_lambda.csv", rho, lambda, pred_vn_length, cn_deg_max, vn_deg_max, 2);
+    
+    int edge_diff = edge2 - edge1;
+    printf("%d edges diff\n",edge_diff);
 
     clock_t end_time = clock();
     // 计算运行时间

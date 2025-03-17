@@ -10,7 +10,8 @@
 double Ecn[pred_cn_l], Evn[pred_vn_l];
 double vn_degree[dimlimit], cn_degree[dimlimit];
 double vn_edge_portion[dimlimit], cn_edge_portion[dimlimit];
-
+int pred_vn_length;
+int pred_cn_length;
 //当前的变量/校验节点的度的取值个数
 int vn_deg_len = 0;
 int cn_deg_len = 0;

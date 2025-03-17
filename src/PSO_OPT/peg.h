@@ -61,7 +61,7 @@ public:
 class TannerGraph {
 public:
     std::vector<std::vector<int>> matrix;
-    std::vector<Node*> symbolNodes;
+    std::vector<Node*> variableNodes;
     std::vector<Node*> checkNodes;
     std::vector<std::pair<int, int>> edges;
     std::vector<int> optimalDegCN;
@@ -69,7 +69,7 @@ public:
     TannerGraph(const std::vector<std::vector<int>>& mat, const std::vector<int>& optimalDeg)
         : matrix(mat), optimalDegCN(optimalDeg) {
         for (size_t i = 0; i < matrix[0].size(); ++i) {
-            symbolNodes.push_back(new Node(i, i, "S" + std::to_string(i), "symbol"));
+            variableNodes.push_back(new Node(i, i, "S" + std::to_string(i), "symbol"));
         }
 
         for (size_t i = 0; i < matrix.size(); ++i) {
@@ -88,18 +88,18 @@ public:
             for (size_t j = 0; j < matrix[i].size(); ++j) {
                 if (matrix[i][j] == 1) {
                     // printf("-------------------------------");
-                    checkNodes[i]->connections.push_back(symbolNodes[j]);
+                    checkNodes[i]->connections.push_back(variableNodes[j]);
                     int checkNode_diff = checkNodes[i]->get_def_diff();
                    // printf("checknode_diff = %d\n",checkNode_diff);
                     checkNodes[i]->set_deg_diff(checkNode_diff-1);
-                    symbolNodes[j]->connections.push_back(checkNodes[i]);
-                    edges.push_back({checkNodes[i]->id, symbolNodes[j]->id});
+                    variableNodes[j]->connections.push_back(checkNodes[i]);
+                    edges.push_back({checkNodes[i]->id, variableNodes[j]->id});
                 }
             }
         }
 
         // for (size_t i = 0; i < matrix[0].size(); ++i) {
-        //     symbolNodes[i]->print();
+        //     variableNodes[i]->print();
         // }
 
         // for (size_t i = 0; i < matrix.size(); ++i) {
@@ -108,7 +108,7 @@ public:
     }
     
     Node* getNode(int id) {
-        for (auto* node : symbolNodes) {
+        for (auto* node : variableNodes) {
             if (node->id == id) return node;
         }
         for (auto* node : checkNodes) {
@@ -123,17 +123,17 @@ public:
         return new TannerGraph(cloneMatrix, cloneOpt);
     }
 
-    void createEdge(int symbolNodeId, int checkNodeId) {
-        Node* symbolNode = getNode(symbolNodeId);
+    void createEdge(int variableNodeId, int checkNodeId) {
+        Node* variableNode = getNode(variableNodeId);
         Node* checkNode = getNode(checkNodeId);
 
-        if (symbolNode && checkNode) {
-            symbolNode->connections.push_back(checkNode);
-            checkNode->connections.push_back(symbolNode);
+        if (variableNode && checkNode) {
+            variableNode->connections.push_back(checkNode);
+            checkNode->connections.push_back(variableNode);
             int checkNode_diff = checkNode->get_def_diff();
             checkNode->set_deg_diff(checkNode_diff-1);
-            edges.push_back({checkNode->id, symbolNode->id});
-            matrix[checkNode->matrixIdx][symbolNode->matrixIdx] = 1;
+            edges.push_back({checkNode->id, variableNode->id});
+            matrix[checkNode->matrixIdx][variableNode->matrixIdx] = 1;
         }
     }
 
@@ -142,8 +142,8 @@ public:
             [](Node* a, Node* b) { return a->connections.size() < b->connections.size(); });
     }
 
-    Node* getSymbolNodeWithLowestDegree() {
-        return *std::min_element(symbolNodes.begin(), symbolNodes.end(),
+    Node* getvariableNodeWithLowestDegree() {
+        return *std::min_element(variableNodes.begin(), variableNodes.end(),
             [](Node* a, Node* b) { return a->connections.size() < b->connections.size(); });
     }
 

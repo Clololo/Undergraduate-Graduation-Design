@@ -36,6 +36,8 @@ extern double vn_edge_portion[dimlimit], cn_edge_portion[dimlimit];
 extern double rho[dimlimit];  // 变量节点的度分布概率
 extern double lambda[dimlimit];  // 校验节点的度分布概率
 extern double messages[dimlimit];  // 输入消息数组
+extern int pred_vn_length;
+extern int pred_cn_length;
 
 double getWeight();
 void getLearningRate(double lr[2]);

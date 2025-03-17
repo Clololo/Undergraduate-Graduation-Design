@@ -15,6 +15,10 @@ typedef struct {
 void printHorizontalLine(int width, char borderChar, char fillChar);
 void printRow(int width, const char *leftText, const char *rightText);
 void printFormattedLine(Parameters params, int width);
-void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dv, int dc);
+void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dc, int dv);
+int pegsrc_save_to_csv(const char *filename, double rho[], double lambda[], int length, int dc, int dv, int flag);
+int read_csv_column(const char* filename, int* data, int size);
+void write_number_to_csv(const char *filename, int number);
+int read_number_from_csv(const char *filename, int *number);
 
 #endif

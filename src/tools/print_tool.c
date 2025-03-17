@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "print_tool.h"
-
+#include "math_tools.h"
 
 void printHorizontalLine(int width, char borderChar, char fillChar) {
     for (int i = 0; i < width; i++) {
@@ -83,7 +83,7 @@ void printFormattedLine(Parameters params, int width) {
 }
 
 
-void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dv, int dc) {
+void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dc, int dv) {
     FILE *file = fopen(filename, "w");
     if (!file) {
         printf("Error: Unable to open file %s\n", filename);
@@ -94,12 +94,12 @@ void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dv
     fprintf(file, "Degree,Rho,Lambda\n");
     for (int i = 0; i <= (dv > dc ? dv : dc); i++) {
         fprintf(file, "%d,", i);
-        if (i <= dv) {
+        if (i <= dc) {
             fprintf(file, "%.6f,", rho[i]);
         } else {
             fprintf(file, ",");
         }
-        if (i <= dc) {
+        if (i <= dv) {
             fprintf(file, "%.6f", lambda[i]);
         }
         fprintf(file, "\n");
@@ -107,4 +107,105 @@ void pso_save_to_csv(const char *filename, double rho[], double lambda[], int dv
 
     fclose(file);
     printf("Results saved to %s\n", filename);
+}
+
+int pegsrc_save_to_csv(const char *filename, double rho[], double lambda[], int length, int dc, int dv, int flag){
+    FILE *file = fopen(filename, "w");
+    int res = 0;
+    if (!file) {
+        printf("Error: Unable to open file %s\n", filename);
+        return -1;
+    }
+    if(flag == 1){
+        fprintf(file, "Rho\n");
+        for(int i = 0; i < dc;i++){
+            int rep = approx(rho[i]*(double)length);
+            for(int j = 0;j < rep;j++){
+                fprintf(file, "%d", i);
+                res += i;
+                fprintf(file, "\n");
+            }
+        }
+    }
+    else if(flag == 2){
+        fprintf(file, "Lambda\n");
+        for(int i = 0; i < dv;i++){
+            int rep = approx(lambda[i]*(double)length);
+            for(int j = 0;j < rep; j++){
+                fprintf(file, "%d", i);
+                res += i;
+                fprintf(file, "\n");
+            }
+        }
+    }
+    return res;
+}
+
+
+int read_csv_column(const char* filename, int* data, int size) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error: Unable to open file");
+        return -1;  // 返回错误码 -1，表示打开文件失败
+    }
+
+    char line[2048];
+    int count = 0;
+
+    // 跳过表头
+    if (fgets(line, sizeof(line), file) == NULL) {
+        fclose(file);
+        return 0;  // 如果没有数据，返回 0
+    }
+
+    int i = 0;
+    // 读取数据并存储到数组
+    while (fgets(line, sizeof(line), file) && i < size) {
+        int value;
+        if (sscanf(line, "%d", &value) == 1) {
+            data[i] = value;
+            i++;
+            count++;  // 记录有效数据的行数
+        }
+    }
+
+    fclose(file);
+    return count;  // 返回实际读取的数据行数
+}
+
+// 将数字写入 CSV 文件（文件格式：第一行是表头，第二行是数字）
+void write_number_to_csv(const char *filename, int number) {
+    FILE *file = fopen(filename, "w");  // 以写模式打开文件
+    if (!file) {
+        perror("无法打开文件");
+        return;
+    }
+    fprintf(file, "Value\n");  // 写入表头
+    fprintf(file, "%d\n", number);  // 写入数值
+    fclose(file);
+}
+
+// 从 CSV 文件读取数字（假设数字在第一列第二行）
+int read_number_from_csv(const char *filename, int *number) {
+    FILE *file = fopen(filename, "r");  // 以读模式打开文件
+    if (!file) {
+        perror("无法打开文件");
+        return -1;
+    }
+    
+    char header[100];  // 用于存储表头
+    if (fgets(header, sizeof(header), file) == NULL) {  // 读取表头
+        perror("读取表头失败");
+        fclose(file);
+        return -1;
+    }
+    
+    if (fscanf(file, "%d", number) != 1) {  // 读取数值
+        perror("读取数值失败");
+        fclose(file);
+        return -1;
+    }
+    
+    fclose(file);
+    return 0;  // 读取成功
 }
