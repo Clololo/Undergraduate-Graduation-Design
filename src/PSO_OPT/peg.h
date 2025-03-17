@@ -12,6 +12,7 @@ class Node {
 public:
     int matrixIdx;
     int id;
+    int deg_diff;  // 度数差
     std::string label;
     std::vector<Node*> connections;
     std::string group;
@@ -29,7 +30,9 @@ public:
                     << "Matrix Index: " << matrixIdx << "\n"
                     << "Label: " << label << "\n"
                     << "Group: " << group << "\n"
+                    << "deg_diff: " << deg_diff << "\n"
                     << "Connections: ";
+
 
         if (connections.empty()) {
             std::cout << "None";
@@ -40,6 +43,18 @@ public:
         }
         std::cout << "\n";
     }
+
+    void print_id() const {
+        std::cout << "Node ID: " << id << " ";
+    }
+
+    int get_def_diff(){
+        return deg_diff;
+    }
+
+    void set_deg_diff(int value){
+        deg_diff = value;
+    }
 };
 
 
@@ -49,28 +64,47 @@ public:
     std::vector<Node*> symbolNodes;
     std::vector<Node*> checkNodes;
     std::vector<std::pair<int, int>> edges;
+    std::vector<int> optimalDegCN;
 
-    TannerGraph(const std::vector<std::vector<int>>& mat) : matrix(mat) {
-        // Create symbol nodes
+    TannerGraph(const std::vector<std::vector<int>>& mat, const std::vector<int>& optimalDeg)
+        : matrix(mat), optimalDegCN(optimalDeg) {
         for (size_t i = 0; i < matrix[0].size(); ++i) {
             symbolNodes.push_back(new Node(i, i, "S" + std::to_string(i), "symbol"));
         }
 
-        // Create check nodes
         for (size_t i = 0; i < matrix.size(); ++i) {
             checkNodes.push_back(new Node(i, i + matrix[0].size(), "C" + std::to_string(i), "check"));
         }
 
-        // Create edges based on the parity check matrix
+        //设置初始的目标度数差
+        for(size_t i = 0; i < matrix.size(); i++){
+            checkNodes[i]->set_deg_diff(optimalDegCN[i]);
+           // checkNodes[i]->print();
+        }
+
+        
+
         for (size_t i = 0; i < matrix.size(); ++i) {
             for (size_t j = 0; j < matrix[i].size(); ++j) {
                 if (matrix[i][j] == 1) {
+                    // printf("-------------------------------");
                     checkNodes[i]->connections.push_back(symbolNodes[j]);
+                    int checkNode_diff = checkNodes[i]->get_def_diff();
+                   // printf("checknode_diff = %d\n",checkNode_diff);
+                    checkNodes[i]->set_deg_diff(checkNode_diff-1);
                     symbolNodes[j]->connections.push_back(checkNodes[i]);
                     edges.push_back({checkNodes[i]->id, symbolNodes[j]->id});
                 }
             }
         }
+
+        // for (size_t i = 0; i < matrix[0].size(); ++i) {
+        //     symbolNodes[i]->print();
+        // }
+
+        // for (size_t i = 0; i < matrix.size(); ++i) {
+        //     checkNodes[i]->print();
+        // }
     }
     
     Node* getNode(int id) {
@@ -85,7 +119,8 @@ public:
 
     TannerGraph* getClone() {
         std::vector<std::vector<int>> cloneMatrix = matrix;
-        return new TannerGraph(cloneMatrix);
+        std::vector<int> cloneOpt = optimalDegCN;
+        return new TannerGraph(cloneMatrix, cloneOpt);
     }
 
     void createEdge(int symbolNodeId, int checkNodeId) {
@@ -95,10 +130,11 @@ public:
         if (symbolNode && checkNode) {
             symbolNode->connections.push_back(checkNode);
             checkNode->connections.push_back(symbolNode);
+            int checkNode_diff = checkNode->get_def_diff();
+            checkNode->set_deg_diff(checkNode_diff-1);
             edges.push_back({checkNode->id, symbolNode->id});
             matrix[checkNode->matrixIdx][symbolNode->matrixIdx] = 1;
         }
-
     }
 
     Node* getCheckNodeWithLowestDegree() {
@@ -111,6 +147,13 @@ public:
             [](Node* a, Node* b) { return a->connections.size() < b->connections.size(); });
     }
 
+    Node* getCheckNodeWithBiggestGap(){
+        // std::cout<<"all check node:";
+        // for(int i = 0;i < checkNodes.size();i++) checkNodes[i]->print_id();
+        // std::cout<<std::endl;
+        return *std::min_element(checkNodes.begin(), checkNodes.end(),
+        [](Node* a, Node* b) { return a->deg_diff > b->deg_diff; });
+    }
 
     void printAdjacencyMatrix(int m, int n) {
         std::vector<std::vector<int>> adjMatrix(m, std::vector<int>(n, 0));
@@ -246,6 +289,36 @@ public:
                 // Print the information of the node with the lowest degree
             
                 return lowestDegreeNode;
+            }
+
+            Node* getUCCheckNodeWithBiggestGap() {
+                std::vector<Node*> uncoveredCheckNodes;
+                for (auto* node : _tannerGraph->checkNodes) {
+                    bool coverFlag = false;
+                    for(const auto* cvnode : coveredCheckNodes()){
+                        if(node == cvnode){
+                            coverFlag = true;break;
+                        }
+                    }
+                    if (coverFlag == false) {
+                        //node 不在coveredCheckNodes里
+                        uncoveredCheckNodes.push_back(node);
+                    }
+                }   
+                if (uncoveredCheckNodes.empty()) {
+                    std::cout << "Error: No uncovered check nodes found!\n";   
+                    return nullptr;  
+                }
+            //     std::cout<<"all UCcheck node:";
+            //     for(int i = 0;i < uncoveredCheckNodes.size();i++) uncoveredCheckNodes[i]->print_id();
+            //     std::cout<<std::endl;
+                Node* BiggestGapNode = *std::min_element(
+                    uncoveredCheckNodes.begin(), uncoveredCheckNodes.end(),
+                    [](Node* a, Node* b) { return a->deg_diff > b->deg_diff; });
+            
+                // Print the information of the node with the lowest degree
+            
+                return BiggestGapNode;
             }
         };
 
