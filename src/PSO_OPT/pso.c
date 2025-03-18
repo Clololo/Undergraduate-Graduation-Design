@@ -37,8 +37,8 @@ double getWeight() {
 
 // 获取学习因子
 void getLearningRate(double lr[2]) {
-    lr[0] = 0.39445;
-    lr[1] = 0.89445;
+    lr[0] = 0.49445;
+    lr[1] = 0.69445;
 }
 
 // 粒子位置范围，以度数比
@@ -49,8 +49,8 @@ void getRangePop(double rangePop[2]) {
 
 // 粒子速度范围
 void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -0.05;
-    rangeSpeed[1] = 0.05;
+    rangeSpeed[0] = -0.03;
+    rangeSpeed[1] = 0.03;
 }
 
 double iterative_snr_threshold
@@ -216,32 +216,19 @@ double func(const double x[], double *Ecn, double *Evn,
     memcpy(vn_degree, vn_degree_buf, vn_deg_len * sizeof(double));
     memcpy(vn_edge_portion, vn_edge_portion_buf, vn_deg_len * sizeof(double));
 
-    // for(int i = 0;i<cn_deg_len;i++){
-    //     printf("cn_degree[%d] = %f\n",i,cn_degree[i]);
-    // }
-    // printf("vn_degree_len = %d\n",vn_deg_len);
-    // for(int i = 0;i<vn_deg_len;i++){
-    //     printf("vn_degree[%d] = %f\n",i,vn_degree[i]);
-    // }
-    // for(int i = 0;i<cn_deg_len;i++){
-    //     printf("cn_degree_portion[%f] = %f\n",cn_degree[i],cn_edge_portion[i]);
-    // }
-
-    // for(int i = 0;i<vn_deg_len;i++){
-    //     printf("vn_degree_portion[%f] = %f\n",vn_degree[i],vn_edge_portion[i]);
-    // }
     double snr_threshold = iterative_snr_threshold(SIGMA_TARGET, 1, Ecn, Evn, 
                                                    vn_degree, cn_degree, 
                                                    vn_edge_portion, cn_edge_portion, 
                                                    vn_deg_len, cn_deg_len);
                         
     
-  //  printf("snr_threshold = %f\n",snr_threshold);
+
     double shannon_limit = calculate_sigma_shannon(compute_code_rate(rho, lambda));   //码率计算近似的香农极限
-  //  printf("shannon_limit = %f\n",shannon_limit);
+    //  printf("snr_threshold = %f\n",snr_threshold);
+    //  printf("shannon_limit = %f\n",shannon_limit);
 
     // 目标是最小化SNR和香农极限的差距,这个值要尽可能小！！
-   // printf("sigma_star = %f\n",fabs(snr_threshold - shannon_limit));
+    // printf("sigma_star = %f\n",fabs(snr_threshold - shannon_limit));
     return fabs(snr_threshold - shannon_limit);
 }
 
@@ -251,8 +238,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion) {
     
-   //处理第i个粒子
-    //printf("init");
+    //处理第i个粒子
     for (int i = 0; i < sizePop; ++i) {
         double sum_exp_theta_r = 0.0;
         double sum_exp_theta_l = 0.0;
@@ -264,14 +250,11 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
                // pop[i][k] = rand() / (double)RAND_MAX * rangePop[1];
                 pop[i][k] = 0;
                 v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];
-                // if(k >= 2 && k < cn_deg_max) sum_exp_theta_r += exp(pop[i][k]);
-                // else if(k >= cn_deg_max + 2) sum_exp_theta_l += exp(pop[i][k]);
-                // if(k >= 2 && k < cn_deg_max) sum_exp_theta_r += pop[i][k];
-                // else if(k >= cn_deg_max + 2) sum_exp_theta_l += pop[i][k];
             }
         }
-        pop[i][3] = 1.0;
-        pop[i][cn_deg_max + 2] = 1.0;
+        //初始化一个(3,6)LDPC
+        pop[i][init_cn_deg] = 1.0;
+        pop[i][cn_deg_max + init_vn_deg] = 1.0;
         sum_exp_theta_r = 1.0;
         sum_exp_theta_l = 1.0;
 

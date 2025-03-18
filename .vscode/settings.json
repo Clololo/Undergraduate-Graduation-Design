@@ -115,7 +115,8 @@
     "variant": "cpp",
     "unordered_set": "cpp",
     "math_tools.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "fstream": "cpp"
   },
   "python.terminal.activateEnvironment": true
 }

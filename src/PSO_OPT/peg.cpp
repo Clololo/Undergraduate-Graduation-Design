@@ -28,7 +28,7 @@ private:
         tannerGraph = new TannerGraph(parityCheckMatrix, cn_best_deg);
 
         for (int index = 0; index < vn_best_deg.size(); ++index) {
-            printf("the %d index begin...\n",index+1);
+            //printf("the %d index begin...\n",index+1);
             int degree = vn_best_deg[index];    
             Node* variableNode = tannerGraph->getNode(index);
             int goal_degree = degree;
@@ -132,14 +132,14 @@ int main() {
     //int n = pred_vn_length; // Number of symbol nodes    
     //int m = pred_cn_length; // Number of check nodes
     int n, m;
-    read_number_from_csv("out/pred_vnl.csv", &n);
-    read_number_from_csv("out/pred_cnl.csv", &m);
+    read_number_from_csv("temp/pred_vnl.csv", &n);
+    read_number_from_csv("temp/pred_cnl.csv", &m);
 
     int cnd[pred_code_length];
     int vnd[pred_code_length];
 
-    int cn_num = read_csv_column("out/sim_rho.csv", cnd, pred_code_length);
-    int vn_num = read_csv_column("out/sim_lambda.csv", vnd, pred_code_length);
+    int cn_num = read_csv_column("temp/sim_rho.csv", cnd, pred_code_length);
+    int vn_num = read_csv_column("temp/sim_lambda.csv", vnd, pred_code_length);
 
     std::vector<int> cn_best_deg;
     std::vector<int> vn_best_deg;
@@ -162,7 +162,9 @@ int main() {
     });
     printf("the peg algorithm finished\n");
     // Use the generated Tanner graph (tg) as needed
-    tg->printAdjacencyMatrix(m, n);
+    //tg->printAdjacencyMatrix(m, n);
+    tg->printAdjacencyMatrixToCSV(m, n, "output/optim_checkmatrix.csv");
+
     return 0;
 }
 

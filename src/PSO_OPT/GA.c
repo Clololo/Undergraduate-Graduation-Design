@@ -20,26 +20,20 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
         if (iter == 1) {            
             // 计算第一次Ecn和Evn             
             for (int k = 0; k < cn_deg_len; k++) {  
-                //printf("%f \n",cn_degree[k]);     
-                //printf("%f\n",1 - phi(2 / (sigma * sigma)));
                 Ecn[k] = phi_inverse(1 - pow(1 - phi(2 / (sigma * sigma)), cn_degree[k]));          
             }   
             // 计算Ave_CN
             double Ave_CN = 0.0;
             for (int k = 0; k < cn_deg_len; k++) {   //这里应该是不同的节点度数种类数
-               // printf("%d %f %f\n",k,cn_edge_portion[k],Ecn[k]);
                 Ave_CN += cn_edge_portion[k] * Ecn[k];
             }
             // 计算Evn
             for (int k = 0; k < vn_deg_len; k++) {
-                // printf("vn_degree[%d] = %f ",k,vn_degree[k]);
                 Evn[k] = 2 / (sigma * sigma) + vn_degree[k] * Ave_CN;
-                // printf("evk[%d] = %f\n",k,Evn[k]);
             }
             // 计算误比特率Pe
             current_Pe = 0.0;            
             for (int k = 0; k < vn_deg_len; k++) {
-                //printf("%f %f\n",vn_edge_portion[k],Evn[k]);
                 current_Pe += vn_edge_portion[k] * (1 - normcdf(sqrt(Evn[k] / 2)));
             }
 

@@ -12,7 +12,7 @@ if %errorlevel% neq 0 (
 REM 运行生成的程序
 cd ..
 bin\PSOtest.exe
-cd /scripts
+cd scripts
 
 @REM rem 检查 Python 是否安装
 @REM python --version >nul 2>&1

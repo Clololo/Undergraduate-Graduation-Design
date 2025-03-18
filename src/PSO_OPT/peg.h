@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <queue>
 #include <unordered_set>
+#include <fstream>
 
 class Node {
 public:
@@ -168,6 +169,31 @@ public:
         }
     }
     
+    void printAdjacencyMatrixToCSV(int m, int n, const std::string& filename) {
+        std::vector<std::vector<int>> adjMatrix(m, std::vector<int>(n, 0));
+    
+        for (const auto& edge : this->edges) {
+            adjMatrix[edge.first-n][edge.second] = 1;  // 由边 (edge.first -> edge.second) 设置为 1
+        }
+    
+        std::ofstream file(filename);
+        if (!file) {
+            std::cerr << "无法打开文件: " << filename << std::endl;
+            return;
+        }
+    
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                file << adjMatrix[i][j];
+                if (j < n - 1) file << ",";  // 逗号分隔
+            }
+            file << "\n";  // 换行
+        }
+    
+        file.close();
+        std::cout << "邻接矩阵已保存到 " << filename << std::endl;
+    }
+
     // SubGraph class definition
     class SubGraph {
         public:

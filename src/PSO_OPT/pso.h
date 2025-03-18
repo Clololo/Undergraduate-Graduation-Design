@@ -15,6 +15,10 @@
 #define pred_vn_l 384      
 #define pred_cn_l 128  
 
+//初始化为（3，6）LDPC码
+#define init_cn_deg 6
+#define init_vn_deg 3
+
 //预期的最低码率
 #define pred_code_rate_lowlimit 0.75
 

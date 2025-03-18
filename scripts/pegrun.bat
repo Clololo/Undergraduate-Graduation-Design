@@ -13,4 +13,4 @@ if %errorlevel% neq 0 (
 REM 运行生成的程序
 cd ..
 bin\peg.exe
-cd -  # 回到之前的目录
+cd scripts
