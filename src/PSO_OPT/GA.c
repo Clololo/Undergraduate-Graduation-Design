@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "../tools/math_tools.h"
+#include "../tools/math_tool.h"
 #include "pso.h"
 
 // 定义常量

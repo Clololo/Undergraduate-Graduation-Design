@@ -114,9 +114,11 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "unordered_set": "cpp",
-    "math_tools.h": "c",
+    "math_tool.h": "c",
     "string.h": "c",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "print_tool.h": "c",
+    "electron_sim.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

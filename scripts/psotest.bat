@@ -1,7 +1,9 @@
 @echo off
 
 REM 编译所有源文件并生成可执行文件
-gcc -o ../bin/PSOtest ../src/PSO_OPT/psotest.c ../src/PSO_OPT/pso.c ../src/PSO_OPT/FDE.c ../src/PSO_OPT/GA.c ../src/tools/print_tool.c ../src/tools/math_tools.c
+gcc -o ../bin/PSOtest ^
+       ../src/PSO_OPT/psotest.c ../src/PSO_OPT/pso.c ../src/PSO_OPT/FDE.c ../src/PSO_OPT/GA.c ^
+       ../src/tools/print_tool.c ../src/tools/math_tool.c
 
 REM 检查是否编译成功
 if %errorlevel% neq 0 (

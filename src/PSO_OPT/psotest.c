@@ -5,15 +5,13 @@
 #include "FDE.h"
 #include "pso.h"
 #include "../tools/print_tool.h"
-#include "../tools/math_tools.h"
+#include "../tools/math_tool.h"
 
 #define maxGen 200
 #define sizePop 30
 
-
 // const int dim = (pred_vn_l + pred_cn_l)/10 - 2;
 int main() {
-
     //clock_t start_time = clock();
     srand(time(NULL));
     // 粒子群优化的参数
@@ -58,9 +56,9 @@ int main() {
     //     printf("lambda[%d] = %f\n", i, lambda[i]);
     // }
     // printf("\n");
-
+    
     double R = compute_code_rate(rho, lambda);
-    printf("the best R = %f\n",R);
+    printf("Searched best code rate = %f\n", R);
     
     pso_save_to_csv("temp/opt_deg.csv", rho, lambda, cn_deg_max, vn_deg_max);
     pso_save_to_csv("output/opt_deg.csv", rho, lambda, cn_deg_max, vn_deg_max);

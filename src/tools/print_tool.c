@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "print_tool.h"
-#include "math_tools.h"
+#include "math_tool.h"
 
 void printHorizontalLine(int width, char borderChar, char fillChar) {
     for (int i = 0; i < width; i++) {
