@@ -33,10 +33,11 @@ int ct(int *C, Graph* tanner) {
     return 1;  // 检验通过
 }
 
-
+//return 优化掉的迭代次数
 double func(int particle_index, double alpha, double beta, Graph* tanner, int iteration, int num_frames, 
     double *pop, int N, int M, int Z, int g, int **CCT, int **DDT_inv, int **AT, int **BT, int **TT_inv,
     int Slen, double snr_db) {
+    double total_iters_with_pso = 0;
     double total_iters = 0;
     int success_frames = 0;
 
@@ -84,9 +85,16 @@ double func(int particle_index, double alpha, double beta, Graph* tanner, int it
         // 译码
         int *resC;
         int iters;
-        MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
+        int iters1;
 
-        total_iters += iters;
+        //PSO优化后的迭代次数-->iters 
+        MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
+        //NORMAL的迭代次数-->iters1
+        MINBP_NORMAL(C, electron, &resC, tanner, iteration, alpha, beta, &iters1);
+
+      //  printf("%d %d||", iters, iters1); 
+        total_iters_with_pso += (double)iters;
+        total_iters += (double)iters1;
         compareDigit(resC, C_dup, N * Z);
 
         // 释放内存
@@ -96,7 +104,9 @@ double func(int particle_index, double alpha, double beta, Graph* tanner, int it
         freeMatrix(S, 1);
     }
 
-    return total_iters / (double)num_frames;
+    printf("iter with pso: %.0f\n",total_iters_with_pso);        
+    printf("iter without pso %.0f\n",total_iters);          
+    return (total_iters - total_iters_with_pso) / (double)num_frames;    
 }
 
 void pso_optimize_min_sum(Graph* tanner, float alpha, float beta, int size, int codeLen, int decoding_time, int iteration, 
@@ -109,18 +119,19 @@ void pso_optimize_min_sum(Graph* tanner, float alpha, float beta, int size, int 
     getInitBest(sizePop, codeLen, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
 
     // 进行 PSO 优化
-    // 总解码次数  decoding_time次，前decoding_time / 5次用于PSO优化
-    int optimization_iters = decoding_time / 5;
+    // 总解码次数  decoding_time次，前decoding_time *0.2次用于PSO优化
+    int optimization_iters = decoding_time * opt_rate;
 
-    //更新窗口为10
-    int update_interval = 10;
+    //更新窗口为100
+    int update_interval = update_window;
     for (int iter = 0; iter < optimization_iters; iter += update_interval) {
         //  每个粒子单独用于译码
         for (int i = 0; i < sizePop; i++) {
-            // 计算适应度（每 10 帧计算一次）
             // == 每个func译码 update_interval次
             //在这里fitness已经更新，不需要再到update_particles更新fitness 
             fitness[i] = func(i, alpha, beta, tanner, iteration, update_interval, pop[i], N, M, Z, g, CCT, DDT_inv, AT, BT, TT_inv, Slen, snr_db);
+           // printf("fitness = %f\n",fitness[i]);
+            //printf("particle %d average opt-decoding %f times\n", i+1, fitness[i]);
         }
         // 更新粒子群
         update_particles(sizePop, codelength, pop, v, fitness, pbestPop, pbestFitness, gbestPop, gbestFitness);
@@ -218,10 +229,14 @@ void run(int frames, int snr_db, int iteration, float alpha, float beta){
     double gbestPop[sizePop], gbestFitness;    
     double pbestPop[sizePop][codelength], pbestFitness[sizePop];
 
-    pso_optimize_min_sum(tanner, alpha, beta, sizePop, codelength, frames, INIT_FUNC, \
+    pso_optimize_min_sum(tanner, alpha, beta, sizePop, codelength, frames, max_iteration, \
                          pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
                          N, M, Z, g, CCT, DDT_inv, AT, BT, TT_inv, Slen, snr_db);
 
+    for(int i = 0; i < Slen; i++){
+        printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
+    }
+    printf("gbestFitness = %f\n",gbestFitness);
 
     //  freeQCLDPCMatrix(M, N, Z, H);   //free H
     freeMatrix(H2D, M * Z);  // free H2D
@@ -251,9 +266,9 @@ void run(int frames, int snr_db, int iteration, float alpha, float beta){
     // printf("The simulated BER is %e\nunder LDPC, the actual BER is %e\n", simulateBER, trueBER);
     // printf("The simulated FER is %e\nunder LDPC, the actual FER is %e\n", simulateFER, trueFER);
 
-    printHorizontalLine(WIDTH, '|', '=');
+    // printHorizontalLine(WIDTH, '|', '=');
     
-    printRow(WIDTH, " K/N    ALPHA/BETA    Bits   Frames  ITERS   BER     BER_LDPC    FER     FER_LDPC", " ");
+    //printRow(WIDTH, " K/N    ALPHA/BETA    Bits   Frames  ITERS   BER     BER_LDPC    FER     FER_LDPC", " ");
     
     Parameters params = {
         .int1 = K*Z, .int2 = N*Z,
@@ -264,9 +279,9 @@ void run(int frames, int snr_db, int iteration, float alpha, float beta){
     };
 
     // 打印格式化的数字行
-    printFormattedLine(params, WIDTH);
+   // printFormattedLine(params, WIDTH);
     // 打印方框的底部边界
-    printHorizontalLine(WIDTH, '|', '=');
+   // printHorizontalLine(WIDTH, '|', '=');
     clock_t end_time = clock();
     
     // 计算运行时间

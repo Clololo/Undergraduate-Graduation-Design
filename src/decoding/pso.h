@@ -3,10 +3,14 @@
 
 #define codelength 512
 #define sizePop 30
-#define INIT_FUNC 50
+#define max_iteration 50
+#define init_fitness 0
+#define update_window 100
+
+//用于优化的次数占总译码次数的比例
+#define opt_rate 0.2  
 
 extern int iters_tmp;
-
 
 // 获取惯性权重
 double getWeight();
@@ -24,7 +28,6 @@ void getInitBest(int size, int codeLen, double pop[][codelength], double v[][cod
     double pbestPop[][codelength], double pbestFitness[]);
 //PSO参数
 double getDeclineRate(int iter,int now);
-
 // 粒子群优化更新函数，这里损失函数（与香农极限的差值）越小越好
 void update_particles(int size, int codeLen, double pop[][codelength], double v[][codelength], double fitness[],
     double pbestPop[][codelength], double pbestFitness[], double gbestPop[], double *gbestFitness);

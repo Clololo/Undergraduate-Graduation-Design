@@ -2,6 +2,7 @@
 
 int main(){
     // frame snr iteration alpha beta 
-    for(int snr = 1;snr<=31;snr++)
-        run(10000, snr, 50, 0.7, 0);
+    // for(int snr = 1;snr<=31;snr++)
+    //     run(10000, snr, 50, 0.7, 0);
+    run(5000,10,50,0.7,0);
 } 

@@ -26,7 +26,6 @@ void initialize_messages(double ***C2V, double ***V2C, double *llr, Graph* tanne
         }
     }
 }
-
 // 横向传播
 void horizontal_step(double ***C2V, double ***V2C, Graph* tanner, float alpha, float beta) {
     for(int i = 0; i < tanner->numC; i++){  //遍历校验节点
@@ -76,6 +75,29 @@ void vertical_step(double ***C2V, double ***V2C, double *llr, Graph* tanner, dou
         }
     }
 }
+
+// 纵向传播
+void vertical_step_NORMAL(double ***C2V, double ***V2C, double *llr, Graph* tanner) {
+    for(int j = tanner->numC; j < tanner->numNodes; j++){
+        AdjListNode* pV = tanner->array[j].head;  // 选择一个变量节点
+        while (pV != NULL) {
+            int i = pV->dest;  // 连接的校验节点
+            double message = llr[j - tanner->numC];  // 乘以权重
+
+            AdjListNode* pC = tanner->array[j].head;
+            while (pC != NULL) {
+                int k = pC->dest;
+                if (k != i) {
+                    message += (*C2V)[k][j - tanner->numC];  // 乘以权重
+                }
+                pC = pC->next;
+            }
+            (*V2C)[i][j - tanner->numC] = message;
+            pV = pV->next;
+        }
+    }
+}
+
 // 决策
 void decision(int **decode_C, double **C2V, double *data, Graph* tanner) {
     for (int j = tanner->numC; j < tanner->numNodes; j++) {
@@ -134,7 +156,7 @@ bool MINBP(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, 
     initialize_messages(&C2V, &V2C, llr, tanner);
 
     bool success = false;
-    *iterations = 100;   //如果迭代不成功，用一个大值表示对不成功的惩罚
+    *iterations = error_punish;   //如果迭代不成功，用一个大值表示对不成功的惩罚
     for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
         horizontal_step(&C2V, &V2C, tanner, alpha, beta);
         vertical_step(&C2V, &V2C, llr, tanner, value);
@@ -159,7 +181,63 @@ bool MINBP(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, 
     free(V2C);
     free(decode_C);
     free(llr);
-    
+    //if(success) printf("s"); else printf("f");
     errorFrameWithLDPC += success ? 0 : 1;
+    return success;
+}
+
+
+bool MINBP_NORMAL(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, float alpha, float beta, int* iterations){
+    *resC = (int *)malloc(tanner->numV * sizeof(int));
+    
+    if (check_syndrome((int *)C, tanner)) {
+        for (int j = 0; j < tanner->numV; j++) {
+            (*resC)[j] = C[j];
+        }
+        *iterations = 0;
+        return true;
+    }
+    
+    errorFrame += 1;
+    int *decode_C = (int *)malloc(tanner->numV * sizeof(int));
+    double *llr = (double *)malloc(tanner->numV * sizeof(double));
+    double **C2V = (double **)malloc(tanner->numC * sizeof(double *));
+    double **V2C = (double **)malloc(tanner->numC * sizeof(double *));
+
+    for (int i = 0; i < tanner->numC; i++) {
+        C2V[i] = (double *)malloc(tanner->numV * sizeof(double));
+        V2C[i] = (double *)malloc(tanner->numV * sizeof(double));
+    }
+
+    convert_to_llr(&llr, data, tanner->numV);
+    initialize_messages(&C2V, &V2C, llr, tanner);
+
+    bool success = false;
+    *iterations = error_punish;   //如果迭代不成功，用一个大值表示对不成功的惩罚
+    for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
+        horizontal_step(&C2V, &V2C, tanner, alpha, beta);
+        vertical_step_NORMAL(&C2V, &V2C, llr, tanner);
+        decision(&decode_C, C2V, data, tanner);
+        if (check_syndrome(decode_C, tanner)){
+            *iterations = iter + 1;    //实时更新本次的解码成功所用迭代次数
+            success = true;
+            break;
+        }
+    }
+    
+    for (int j = 0; j < tanner->numV; j++) {
+        (*resC)[j] = success ? decode_C[j] : C[j];
+    }
+    
+    for (int i = 0; i < tanner->numC; i++) {
+        free(C2V[i]);
+        free(V2C[i]);
+    }
+    free(C2V);
+    free(V2C);
+    free(decode_C);
+    free(llr);
+    //if(success) printf("s"); else printf("f");
+    //errorFrameWithLDPC += success ? 0 : 1;
     return success;
 }

@@ -10,5 +10,5 @@ if %errorlevel% neq 0 (
 )
 cd ..
 bin\LDPCrun.exe
-cd -
+cd .\scripts
 pause
