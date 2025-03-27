@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "../tools/math_tool.h"
 #include "pso.h"
+#include "../config.h"
 
 // 定义常量
 

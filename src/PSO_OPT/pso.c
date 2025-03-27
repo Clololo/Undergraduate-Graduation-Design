@@ -5,7 +5,9 @@
 #include "FDE.h"
 #include "pso.h"
 #include "GA.h"
+#include "../config.h"
 #include <string.h>
+
 
 double Ecn[pred_cn_l], Evn[pred_vn_l];
 double vn_degree[dimlimit], cn_degree[dimlimit];

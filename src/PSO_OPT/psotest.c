@@ -4,11 +4,9 @@
 #include <time.h>
 #include "FDE.h"
 #include "pso.h"
+#include "../config.h"
 #include "../tools/print_tool.h"
 #include "../tools/math_tool.h"
-
-#define maxGen 200
-#define sizePop 30
 
 // const int dim = (pred_vn_l + pred_cn_l)/10 - 2;
 int main() {
@@ -20,24 +18,24 @@ int main() {
     getRangeSpeed(rangeSpeed);
     
     //粒子群优化初始化
-    double pop[sizePop][dimlimit], v[sizePop][dimlimit], fitness[sizePop];    
-    initPopVFit(sizePop, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
+    double pop[sizePop_en][dimlimit], v[sizePop_en][dimlimit], fitness[sizePop_en];    
+    initPopVFit(sizePop_en, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion);
 
     // 初始最优解
-    double gbestPop[sizePop], gbestFitness;    
-    double pbestPop[sizePop][dimlimit], pbestFitness[sizePop];
-    getInitBest(sizePop, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
+    double gbestPop[sizePop_en], gbestFitness;    
+    double pbestPop[sizePop_en][dimlimit], pbestFitness[sizePop_en];
+    getInitBest(sizePop_en, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
     int lastBest = -1;
     int repeCounter = 0;
 
     // 粒子群优化迭代过程
-    for (int gen = 0; gen < maxGen; ++gen) {
+    for (int gen = 0; gen < maxGen_en; ++gen) {
         //printf("gen%d\n",gen+1);
-        if((gen*10) % maxGen == 0){
-            printf("finished %.0f%% \n",(double)(100*(double)gen/(double)maxGen));
+        if((gen*10) % maxGen_en == 0){
+            printf("finished %.0f%% \n",(double)(100*(double)gen/(double)maxGen_en));
         }
-        update_particles(sizePop, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen, gen);
+        update_particles(sizePop_en, pop, v, fitness, pbestPop, pbestFitness, gbestPop, &gbestFitness, maxGen_en, gen);
     }
     
     // 输出优化后的结果
@@ -63,7 +61,7 @@ int main() {
     pso_save_to_csv("temp/opt_deg.csv", rho, lambda, cn_deg_max, vn_deg_max);
     pso_save_to_csv("output/opt_deg.csv", rho, lambda, cn_deg_max, vn_deg_max);
 
-    pred_vn_length = pred_code_length;
+    pred_vn_length = max_read_length;
     pred_cn_length = approx((double)(pred_vn_length)*(1.0 - R));
 
     write_number_to_csv("temp/pred_vnl.csv", pred_vn_length);

@@ -1,38 +1,6 @@
 #ifndef PSO_H
 #define PSO_H
 
-#define EPSILON 1e-6      // 收敛阈值
-#define STEP_SIZE 0.1     // 拉普拉斯变换步长
-#define SIGMA_TARGET 0.8  // 初始模拟信噪比（可根据香农极限调整）  
-#define PE_THRESHOLD 1e-5
-#define SIGMA_INC 1e-3
-#define GA_MODE 1
-#define DE_MODE 2
-#define MAX_ITER 800
-
-//预期变量节点和校验节点的数量
-#define pred_code_length 512
-#define pred_vn_l 384      
-#define pred_cn_l 128  
-
-//初始化为（3，6）LDPC码
-#define init_cn_deg 6
-#define init_vn_deg 3
-
-//预期的最低码率
-#define pred_code_rate_lowlimit 0.75
-
-//预期的最高码率
-#define pre_code_rate_limit 0.9
-
-
-#define vn_deg_max (((int)(sqrt(pred_cn_l)/2))+1)
-#define cn_deg_max (((int)(sqrt(pred_vn_l)))+1)
-#define dim (vn_deg_max+cn_deg_max)
-#define dimlimit 128
-#define alpha_penalty 10
-#define beta_penalty 10
-
 extern double Ecn[pred_cn_l], Evn[pred_vn_l];
 extern double vn_degree[dimlimit], cn_degree[dimlimit];
 extern double vn_edge_portion[dimlimit], cn_edge_portion[dimlimit];

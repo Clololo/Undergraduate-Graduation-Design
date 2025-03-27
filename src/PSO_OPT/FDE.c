@@ -3,6 +3,7 @@
 #include <math.h>
 #include "FDE.h"
 #include "pso.h"
+#include "../config.h"
 
 
 // 初始化度分布，使其满足微分和为 1    

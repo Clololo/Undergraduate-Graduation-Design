@@ -40,6 +40,7 @@ void awgn_channel(int *int_array, double **data, int length, double snr_db) {
 }
 
 void changeDigit(int **int_array,double *data, int length){
+
     for(int i = 0; i < length; i++){
         (*int_array)[i] = data[i] > 0 ? 1 : 0;
     }

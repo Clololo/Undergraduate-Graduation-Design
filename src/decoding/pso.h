@@ -1,14 +1,7 @@
 #ifndef PSO_H
 #define PSO_H
 
-#define codelength 512
-#define sizePop 30
-#define max_iteration 50
-#define init_fitness 0
-#define update_window 100
-
-//用于优化的次数占总译码次数的比例
-#define opt_rate 0.2  
+#include "../config.h"
 
 extern int iters_tmp;
 

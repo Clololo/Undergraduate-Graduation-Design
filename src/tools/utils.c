@@ -89,11 +89,13 @@ void simulateErrors(int **Digit, int length, float errorRate) {
 }
 
 //检查最终出错的位数
-void compareDigit(int *array1, int *array2, int length) {
+int compareDigit(int *array1, int *array2, int length) {
+    int errorBit = 0;
     for (int i = 0; i < length; i++) {
         if (array1[i] != array2[i]) {
-            errorBitWithLDPC ++;
+            errorBit ++;
         }
     }
+    return errorBit;
 }
 

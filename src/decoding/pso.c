@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "pso.h"
+#include "../config.h"
 #include <string.h>
 
 // 获取惯性权重
@@ -12,8 +13,8 @@ double getWeight() {
 
 // 获取学习因子
 void getLearningRate(double lr[2]) {
-    lr[0] = 0.49445;
-    lr[1] = 1.19445;
+    lr[0] = 5.49445;
+    lr[1] = 10.19445;
 }
 
 // 粒子位置范围，以度数比
@@ -24,8 +25,8 @@ void getRangePop(double rangePop[2]) {
 
 // 粒子速度范围
 void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -0.1;
-    rangeSpeed[1] = 0.1;
+    rangeSpeed[0] = -1;
+    rangeSpeed[1] = 1;
 }
 
 
@@ -34,7 +35,7 @@ void initPopVFit(int size, int codeLen, double pop[][codelength], double v[][cod
     double rangeSpeed[2];
     getRangeSpeed(rangeSpeed);
     //处理第i个粒子
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         for(int k = 0; k < codeLen; ++k) {
             pop[i][k] = 1;   
             v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];  
@@ -48,17 +49,17 @@ void initPopVFit(int size, int codeLen, double pop[][codelength], double v[][cod
 void getInitBest(int size, int codeLen, double pop[][codelength], double v[][codelength], const double fitness[], double gbestPop[], double *gbestFitness,
     double pbestPop[][codelength], double pbestFitness[]) {
     int maxIdx = 0;                 
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         if (fitness[i] > fitness[maxIdx]) {
             maxIdx = i;
         }
     }   
     //看是哪一个粒子搜索到了最佳值
     *gbestFitness = fitness[maxIdx];
-    for(int i = 0; i < sizePop; ++i) {
+    for(int i = 0; i < sizePop_de; ++i) {
         gbestPop[i] =  pop[maxIdx][i];
     }
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         pbestFitness[i] = fitness[i];
         for(int k = 0; k < codeLen; ++k){
             pbestPop[i][k] = pop[i][k];
@@ -83,7 +84,7 @@ void update_particles(int size, int codeLen, double pop[][codelength], double v[
     getLearningRate(lr);
     double rangeSpeed[2] = {-0.15, 0.15};   // 速度的上下限
     double rangePop[2] = {0, 1};   //位置的上下限
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         for (int k = 0; k < codeLen; ++k) {
             // double w = getDeclineRate(iter,now_iter);
             double w = 1.0;
@@ -94,14 +95,14 @@ void update_particles(int size, int codeLen, double pop[][codelength], double v[
         }
     }
     //使用PSO公式更新位置
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         for (int k = 0; k < codeLen; ++k) {
             pop[i][k] += v[i][k];   
             if (pop[i][k] < rangePop[0]) pop[i][k] = rangePop[0];   // 下限
         }
     }
     // 更新适应度和最优解
-    for (int i = 0; i < sizePop; ++i) {
+    for (int i = 0; i < sizePop_de; ++i) {
         //计算第i个粒子的损失函数
         //这里的fitness[i]的更新写在了update_particles的外部
         //更新粒子最优解

@@ -14,7 +14,7 @@ void fillArrayWithFirstRow(int **matrix1, int **matrix2, int **matrix3, int **ar
 bool randomcheck(float errorRate);
 void simulateErrors(int **Digit, int length, float errorRate);
 
-void compareDigit(int *array1, int *array2, int length);
+int compareDigit(int *array1, int *array2, int length);
 
 #endif
 

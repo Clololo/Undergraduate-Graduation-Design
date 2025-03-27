@@ -5,6 +5,7 @@
 #include <iostream>
 #include "peg.h"
 #include "pso.h"
+#include "../config.h"
 #include "../tools/print_tool.h"
 
 extern int pred_vn_length;
@@ -135,11 +136,11 @@ int main() {
     read_number_from_csv("temp/pred_vnl.csv", &n);
     read_number_from_csv("temp/pred_cnl.csv", &m);
 
-    int cnd[pred_code_length];
-    int vnd[pred_code_length];
+    int cnd[max_read_length];
+    int vnd[max_read_length];
 
-    int cn_num = read_csv_column("temp/sim_rho.csv", cnd, pred_code_length);
-    int vn_num = read_csv_column("temp/sim_lambda.csv", vnd, pred_code_length);
+    int cn_num = read_csv_column("temp/sim_rho.csv", cnd, max_read_length);
+    int vn_num = read_csv_column("temp/sim_lambda.csv", vnd, max_read_length);
 
     std::vector<int> cn_best_deg;
     std::vector<int> vn_best_deg;

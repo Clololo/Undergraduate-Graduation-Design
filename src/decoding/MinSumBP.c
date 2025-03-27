@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "decode.h"
+#include "../config.h"
 #include "../encoding/encode.h"
 
 extern int errorFrame;
@@ -141,7 +142,7 @@ bool MINBP(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, 
         return true;
     }
     
-    errorFrame += 1;
+    //errorFrame += 1;
     int *decode_C = (int *)malloc(tanner->numV * sizeof(int));
     double *llr = (double *)malloc(tanner->numV * sizeof(double));
 
@@ -182,7 +183,7 @@ bool MINBP(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, 
     free(decode_C);
     free(llr);
     //if(success) printf("s"); else printf("f");
-    errorFrameWithLDPC += success ? 0 : 1;
+    //errorFrameWithLDPC += success ? 0 : 1;
     return success;
 }
 
@@ -198,7 +199,7 @@ bool MINBP_NORMAL(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERA
         return true;
     }
     
-    errorFrame += 1;
+    // errorFrame += 1;
     int *decode_C = (int *)malloc(tanner->numV * sizeof(int));
     double *llr = (double *)malloc(tanner->numV * sizeof(double));
     double **C2V = (double **)malloc(tanner->numC * sizeof(double *));
@@ -219,6 +220,62 @@ bool MINBP_NORMAL(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERA
         vertical_step_NORMAL(&C2V, &V2C, llr, tanner);
         decision(&decode_C, C2V, data, tanner);
         if (check_syndrome(decode_C, tanner)){
+            *iterations = iter + 1;    //实时更新本次的解码成功所用迭代次数
+            success = true;
+            break;
+        }
+    }
+    
+    for (int j = 0; j < tanner->numV; j++) {
+        (*resC)[j] = success ? decode_C[j] : C[j];
+    }
+    
+    for (int i = 0; i < tanner->numC; i++) {
+        free(C2V[i]);
+        free(V2C[i]);
+    }
+    free(C2V);
+    free(V2C);
+    free(decode_C);
+    free(llr);
+    //if(success) printf("s"); else printf("f");
+    //errorFrameWithLDPC += success ? 0 : 1;
+    return success;
+}
+
+bool MINBP_TEST_COMPARE(int *C, double *data, int **resC, Graph* tanner, int MAX_ITERATIONS, float alpha, float beta, int* iterations, double* pop){
+    *resC = (int *)malloc(tanner->numV * sizeof(int));
+    
+    if (check_syndrome((int *)C, tanner)) {
+        for (int j = 0; j < tanner->numV; j++) {
+            (*resC)[j] = C[j];
+        }
+        *iterations = 0;
+        return true;
+    }
+
+    errorFrame += 1;   //这里的errorFrame计算了两遍
+
+    int *decode_C = (int *)malloc(tanner->numV * sizeof(int));
+    double *llr = (double *)malloc(tanner->numV * sizeof(double));
+    double **C2V = (double **)malloc(tanner->numC * sizeof(double *));
+    double **V2C = (double **)malloc(tanner->numC * sizeof(double *));
+
+    for (int i = 0; i < tanner->numC; i++) {
+        C2V[i] = (double *)malloc(tanner->numV * sizeof(double));
+        V2C[i] = (double *)malloc(tanner->numV * sizeof(double));
+    }
+
+    convert_to_llr(&llr, data, tanner->numV);
+    initialize_messages(&C2V, &V2C, llr, tanner);
+
+    bool success = false;
+    *iterations = MAX_ITERATIONS;   //如果迭代不成功，用一个大值表示对不成功的惩罚
+    for (int iter = 0; iter < MAX_ITERATIONS; iter++) {     
+        horizontal_step(&C2V, &V2C, tanner, alpha, beta);   
+        vertical_step(&C2V, &V2C, llr, tanner, pop);    
+        decision(&decode_C, C2V, data, tanner); 
+        if (check_syndrome(decode_C, tanner)){  
             *iterations = iter + 1;    //实时更新本次的解码成功所用迭代次数
             success = true;
             break;
