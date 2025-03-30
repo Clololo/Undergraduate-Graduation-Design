@@ -33,14 +33,13 @@ void awgn_channel(int *int_array, double **data, int length, double snr_db) {
     for (int i = 0; i < length; ++i) {
         if(int_array[i] == 0){
             (*data)[i] = -0.5 + generate_gaussian_noise(0.0, noise_std_dev);
-        } else {
+        } else {     
             (*data)[i] = 0.5 + generate_gaussian_noise(0.0, noise_std_dev);
         }
     }
 }
 
 void changeDigit(int **int_array,double *data, int length){
-
     for(int i = 0; i < length; i++){
         (*int_array)[i] = data[i] > 0 ? 1 : 0;
     }

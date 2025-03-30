@@ -32,28 +32,6 @@ double messages[dimlimit];
 double theta_r[dimlimit];  
 double theta_l[dimlimit];
 
-// 获取惯性权重
-double getWeight() {
-    return 1.0;
-}
-
-// 获取学习因子
-void getLearningRate(double lr[2]) {
-    lr[0] = 0.49445;
-    lr[1] = 0.69445;
-}
-
-// 粒子位置范围，以度数比
-void getRangePop(double rangePop[2]) {
-    rangePop[0] = 0.0;
-    rangePop[1] = 1.0;
-}
-
-// 粒子速度范围
-void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -0.03;
-    rangeSpeed[1] = 0.03;
-}
 
 double iterative_snr_threshold
     (double SIGMA, 
@@ -150,6 +128,7 @@ void pop2DegAndPortion(double *pos, int len, int mode,
             if (pos[i] > 0) {
                 vn_degree[vn_cnt] = i;
                 vn_edge_portion[vn_cnt] = pos[i];
+                //printf("vn_degree[%d] = %d\n", vn_cnt, i);
                 vn_cnt++;
             }
         }
@@ -217,15 +196,14 @@ double func(const double x[], double *Ecn, double *Evn,
     memcpy(cn_edge_portion, cn_edge_portion_buf, cn_deg_len * sizeof(double));
     memcpy(vn_degree, vn_degree_buf, vn_deg_len * sizeof(double));
     memcpy(vn_edge_portion, vn_edge_portion_buf, vn_deg_len * sizeof(double));
-
+    //当前度分布下的噪声阈值
     double snr_threshold = iterative_snr_threshold(SIGMA_TARGET, 1, Ecn, Evn, 
                                                    vn_degree, cn_degree, 
                                                    vn_edge_portion, cn_edge_portion, 
                                                    vn_deg_len, cn_deg_len);
                         
-    
-
-    double shannon_limit = calculate_sigma_shannon(compute_code_rate(rho, lambda));   //码率计算近似的香农极限
+    //香农极限下理论噪声阈值
+    double shannon_limit = calculate_sigma_shannon(compute_code_rate(rho, lambda));   
     //  printf("snr_threshold = %f\n",snr_threshold);
     //  printf("shannon_limit = %f\n",shannon_limit);
 
@@ -235,13 +213,13 @@ double func(const double x[], double *Ecn, double *Evn,
 }
 
 // 初始化种群、速度和适应度
-void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[2],
-                 double pop[][dimlimit], double v[][dimlimit], double fitness[], double *Ecn, double *Evn, 
+void initPopVFit(int sizePop, double pop[][dimlimit], double v[][dimlimit], double fitness[], double *Ecn, double *Evn, 
                 double *vn_degree, double *cn_degree, 
                 double *vn_edge_portion, double *cn_edge_portion) {
     
     //处理第i个粒子
     for (int i = 0; i < sizePop; ++i) {
+
         double sum_exp_theta_r = 0.0;
         double sum_exp_theta_l = 0.0;
         for(int k = 0; k < dim; ++k) {
@@ -251,7 +229,7 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
             }else{
                // pop[i][k] = rand() / (double)RAND_MAX * rangePop[1];
                 pop[i][k] = 0;
-                v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];
+                v[i][k] = rand() / (double)RAND_MAX * en_rangevhigh;
             }
         }
         //初始化一个(3,6)LDPC
@@ -262,7 +240,6 @@ void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[
 
         fitness[i] = func(pop[i], Ecn, Evn, vn_degree, cn_degree, \
                           vn_edge_portion, cn_edge_portion, sum_exp_theta_r, sum_exp_theta_l);
-
         //为了限制码率做出的惩罚
         double R = compute_code_rate(rho, lambda);
         fitness[i] += (alpha_penalty * pow(fmax(0, R - pre_code_rate_limit), 2) + beta_penalty * pow(fmax(0, pred_code_rate_lowlimit - R), 2));
@@ -308,10 +285,6 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
     // fitness 每个粒子的最优适应度
     // pbestPop  每个粒子搜索dim个自变量的最优解
     // gbestPop  dim个自变量的全局最优解
-    double lr[2];
-    getLearningRate(lr);
-    double rangeSpeed[2] = {-0.1, 0.1};   // 速度的上下限
-    double rangePop[2] = {0, 1};   //位置的上下限
     double sum_exp_theta_r[sizePop];
     double sum_exp_theta_l[sizePop];
     //使用PSO公式更新速度
@@ -320,10 +293,10 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
             if(k == 0 || k == 1 || k == cn_deg_max || k == cn_deg_max+1) v[i][k] = 0; //不考虑度数为0，1的  
             else{
                 double w = getDeclineRate(iter,now_iter);
-                v[i][k] += w * (lr[0] * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
-                        + lr[1] * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]));
-                if (v[i][k] < rangeSpeed[0]) v[i][k] = rangeSpeed[0];
-                if (v[i][k] > rangeSpeed[1]) v[i][k] = rangeSpeed[1];
+                v[i][k] += w * (en_lr0 * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
+                        + en_lr1 * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]));
+                if (v[i][k] < en_rangevlow) v[i][k] = en_rangevlow;
+                if (v[i][k] > en_rangevhigh) v[i][k] = en_rangevhigh;
             }
         }
     }
@@ -334,8 +307,8 @@ void update_particles(int sizePop, double pop[][dimlimit], double v[][dimlimit],
         sum_exp_theta_l[i] = 0.0;
         for (int k = 0; k < dim; ++k) {
             pop[i][k] += v[i][k];   
-            if (pop[i][k] < rangePop[0]) pop[i][k] = rangePop[0];
-            if (pop[i][k] > rangePop[1]) pop[i][k] = rangePop[1];
+            if (pop[i][k] < en_rangepoplow) pop[i][k] = en_rangepoplow;
+            if (pop[i][k] > en_rangepophigh) pop[i][k] = en_rangepophigh;
 
             // if(k >= 2 && k < cn_deg_max) sum_exp_theta_r[i] += exp(pop[i][k]);
             // else if(k >= cn_deg_max + 2) sum_exp_theta_l[i] += exp(pop[i][k]);

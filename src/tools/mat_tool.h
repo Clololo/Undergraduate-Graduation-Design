@@ -15,5 +15,6 @@ void transposeMatrix(int **A, int ***B, int rows, int cols);
 void copyPreMat_8_16(char pre[8][16], int ***mat, int m, int n);
 void copyPreMat_16_32(char pre[16][32], int ***mat, int m, int n);
 void copyPreMat_32_64(char pre[32][64], int ***mat, int m, int n);
+void copyPSOMat(const char *filename, int ***H2D, int m, int n);
 
 #endif

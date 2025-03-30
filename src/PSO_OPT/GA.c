@@ -15,8 +15,7 @@ double iterative_snr_threshold_GA(double sigma, double *Ecn, double *Evn,
                                 double *vn_edge_portion, double *cn_edge_portion, 
                                 int vn_deg_len, int cn_deg_len) {
     double current_Pe;    
-    int iter = 1;      
-    //printf("sigma = %lf\n",sigma);        
+    int iter = 1;             
     while (iter <= MAX_ITER) {     
         if (iter == 1) {            
             // 计算第一次Ecn和Evn             

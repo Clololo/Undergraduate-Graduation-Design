@@ -13,13 +13,10 @@ int main() {
     //clock_t start_time = clock();
     srand(time(NULL));
     // 粒子群优化的参数
-    double rangePop[2], rangeSpeed[2];
-    getRangePop(rangePop);
-    getRangeSpeed(rangeSpeed);
     
     //粒子群优化初始化
     double pop[sizePop_en][dimlimit], v[sizePop_en][dimlimit], fitness[sizePop_en];    
-    initPopVFit(sizePop_en, rangePop, rangeSpeed, pop, v, fitness, Ecn, Evn, 
+    initPopVFit(sizePop_en, pop, v, fitness, Ecn, Evn, 
             vn_degree, cn_degree, vn_edge_portion, cn_edge_portion);
 
     // 初始最优解
@@ -28,10 +25,8 @@ int main() {
     getInitBest(sizePop_en, fitness, pop, gbestPop, &gbestFitness, pbestPop, pbestFitness);
     int lastBest = -1;
     int repeCounter = 0;
-
     // 粒子群优化迭代过程
     for (int gen = 0; gen < maxGen_en; ++gen) {
-        //printf("gen%d\n",gen+1);
         if((gen*10) % maxGen_en == 0){
             printf("finished %.0f%% \n",(double)(100*(double)gen/(double)maxGen_en));
         }

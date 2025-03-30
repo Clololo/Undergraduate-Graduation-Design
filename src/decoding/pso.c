@@ -6,39 +6,15 @@
 #include "../config.h"
 #include <string.h>
 
-// 获取惯性权重
-double getWeight() {
-    return 1.0;
-}
-
-// 获取学习因子
-void getLearningRate(double lr[2]) {
-    lr[0] = 5.49445;
-    lr[1] = 10.19445;
-}
-
-// 粒子位置范围，以度数比
-void getRangePop(double rangePop[2]) {
-    rangePop[0] = 0.0;
-    rangePop[1] = 1.0;
-}
-
-// 粒子速度范围
-void getRangeSpeed(double rangeSpeed[2]) {
-    rangeSpeed[0] = -1;
-    rangeSpeed[1] = 1;
-}
 
 
 // 初始化种群、速度和适应度
 void initPopVFit(int size, int codeLen, double pop[][codelength], double v[][codelength], double fitness[]) {
-    double rangeSpeed[2];
-    getRangeSpeed(rangeSpeed);
     //处理第i个粒子
     for (int i = 0; i < sizePop_de; ++i) {
         for(int k = 0; k < codeLen; ++k) {
             pop[i][k] = 1;   
-            v[i][k] = rand() / (double)RAND_MAX * rangeSpeed[1];  
+            v[i][k] = rand() / (double)RAND_MAX * de_rangepophigh;  
         }
         fitness[i] = init_fitness;
     }
@@ -56,7 +32,7 @@ void getInitBest(int size, int codeLen, double pop[][codelength], double v[][cod
     }   
     //看是哪一个粒子搜索到了最佳值
     *gbestFitness = fitness[maxIdx];
-    for(int i = 0; i < sizePop_de; ++i) {
+    for(int i = 0; i < codeLen; ++i) {
         gbestPop[i] =  pop[maxIdx][i];
     }
     for (int i = 0; i < sizePop_de; ++i) {
@@ -80,25 +56,22 @@ void update_particles(int size, int codeLen, double pop[][codelength], double v[
     // fitness 每个粒子的最优适应度
     // pbestPop  每个粒子搜索dim个自变量的最优解
     // gbestPop  dim个自变量的全局最优解
-    double lr[2];
-    getLearningRate(lr);
-    double rangeSpeed[2] = {-0.15, 0.15};   // 速度的上下限
-    double rangePop[2] = {0, 1};   //位置的上下限
+
     for (int i = 0; i < sizePop_de; ++i) {
         for (int k = 0; k < codeLen; ++k) {
             // double w = getDeclineRate(iter,now_iter);
             double w = 1.0;
-            v[i][k] += w * (lr[0] * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
-                    + lr[1] * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]));
-            if (v[i][k] < rangeSpeed[0]) v[i][k] = rangeSpeed[0];
-            if (v[i][k] > rangeSpeed[1]) v[i][k] = rangeSpeed[1];
+            v[i][k] += w * (de_lr0 * ((double)rand() / RAND_MAX) * (pbestPop[i][k] - pop[i][k])
+                    + de_lr1 * ((double)rand() / RAND_MAX) * (gbestPop[k] - pop[i][k]));
+            if (v[i][k] < de_rangevlow) v[i][k] = de_rangevlow;
+            if (v[i][k] > de_rangevhigh) v[i][k] = de_rangevhigh;
         }
     }
     //使用PSO公式更新位置
     for (int i = 0; i < sizePop_de; ++i) {
         for (int k = 0; k < codeLen; ++k) {
             pop[i][k] += v[i][k];   
-            if (pop[i][k] < rangePop[0]) pop[i][k] = rangePop[0];   // 下限
+            if (pop[i][k] < de_rangepoplow) pop[i][k] = de_rangepoplow;   // 下限
         }
     }
     // 更新适应度和最优解

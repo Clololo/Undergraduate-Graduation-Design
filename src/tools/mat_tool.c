@@ -182,3 +182,41 @@ void copyPreMat_32_64(char pre[32][64], int ***mat, int m, int n){
         }
     }
 }
+
+void copyPSOMat(const char *filename, int ***H2D, int m, int n) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    // **在函数内动态分配二维数组**
+    *H2D = (int **)malloc(m * sizeof(int *));
+    if (!*H2D) {
+        perror("Memory allocation failed for rows");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < m; i++) {
+        (*H2D)[i] = (int *)malloc(n * sizeof(int));
+        if (!(*H2D)[i]) {
+            perror("Memory allocation failed for columns");
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // **读取文件中的数据填充矩阵**
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (fscanf(file, "%d%*c", &((*H2D)[i][j])) != 1) { // %*c 跳过逗号或换行符
+                fprintf(stderr, "Error reading matrix at (%d, %d)\n", i, j);
+                fclose(file);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    fclose(file);
+}

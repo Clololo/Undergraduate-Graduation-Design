@@ -5,8 +5,6 @@
 
 extern int iters_tmp;
 
-// 获取惯性权重
-double getWeight();
 // 获取学习因子
 void getLearningRate(double lr[2]);
 // 粒子位置范围，以度数比

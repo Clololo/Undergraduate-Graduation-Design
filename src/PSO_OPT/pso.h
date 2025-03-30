@@ -1,6 +1,8 @@
 #ifndef PSO_H
 #define PSO_H
 
+#include "../config.h"
+
 extern double Ecn[pred_cn_l], Evn[pred_vn_l];
 extern double vn_degree[dimlimit], cn_degree[dimlimit];
 extern double vn_edge_portion[dimlimit], cn_edge_portion[dimlimit];
@@ -11,19 +13,13 @@ extern double messages[dimlimit];  // 输入消息数组
 extern int pred_vn_length;
 extern int pred_cn_length;
 
-double getWeight();
-void getLearningRate(double lr[2]);
-void getRangePop(double rangePop[2]);
-void getRangeSpeed(double rangeSpeed[2]);
 double compute_code_rate(double rho[], double lambda[]);
 double calculate_sigma_shannon(double R);
 double func(const double x[], double *Ecn, double *Evn, 
     double *vn_degree, double *cn_degree, 
     double *vn_edge_portion, double *cn_edge_portion, double sum_exp_theta_r, double sum_exp_theta_l);
-void initPopVFit(int sizePop, const double rangePop[2], const double rangeSpeed[2],
-                 double pop[][dimlimit], double v[][dimlimit], double fitness[], double *Ecn, double *Evn, 
-                double *vn_degree, double *cn_degree, 
-                double *vn_edge_portion, double *cn_edge_portion);
+void initPopVFit(int sizePop, double pop[][dimlimit], double v[][dimlimit], double fitness[], double *Ecn, double *Evn, 
+        double *vn_degree, double *cn_degree, double *vn_edge_portion, double *cn_edge_portion);
 void getInitBest(int sizePop, const double fitness[], const double pop[][dimlimit],
                  double gbestPop[], double *gbestFitness,
                  double pbestPop[][dimlimit], double pbestFitness[]);
