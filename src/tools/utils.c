@@ -99,3 +99,9 @@ int compareDigit(int *array1, int *array2, int length) {
     return errorBit;
 }
 
+// Function to generate a random binary string of given length
+void generateS(int length, int *binaryString) {
+    for (int i = 0; i < length; i++) {
+        binaryString[i] = (rand() % 2) ? 1 : 0;
+    }
+}

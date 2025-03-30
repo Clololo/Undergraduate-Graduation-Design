@@ -119,7 +119,9 @@
     "fstream": "cpp",
     "print_tool.h": "c",
     "electron_sim.h": "c",
-    "config.h": "c"
+    "config.h": "c",
+    "mat_tool.h": "c",
+    "encode.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

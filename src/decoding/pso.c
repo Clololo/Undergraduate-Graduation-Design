@@ -13,7 +13,7 @@ void initPopVFit(int size, int codeLen, double pop[][codelength], double v[][cod
     //处理第i个粒子
     for (int i = 0; i < sizePop_de; ++i) {
         for(int k = 0; k < codeLen; ++k) {
-            pop[i][k] = 1;   
+            pop[i][k] = 1.0;   
             v[i][k] = rand() / (double)RAND_MAX * de_rangepophigh;  
         }
         fitness[i] = init_fitness;
