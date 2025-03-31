@@ -11,17 +11,23 @@ void BPSK_Modulation(int* x, double* d, int len) {
     }
 }
 
-// AWGN信道函数
-void AWGN_Channel(double* d, double* y, int len, double SNR_dB, double R) {
-    // 计算SNR和sigma
-    double SNR_linear = pow(10.0, SNR_dB / 10.0);
-    double sigma = sqrt(1.0 / SNR_linear);
-    
-    // 添加高斯噪声
-    for(int i = 0; i < len; i++) {
-        double noise = sigma * sqrt(-2.0 * log((double)rand() / RAND_MAX)) * 
-                      cos(2.0 * M_PI * (double)rand() / RAND_MAX);
-        y[i] = d[i] + noise;
+void AWGN_Channel(double* d, double* y, int len, double sigma, double R) {
+
+    // 添加高斯噪声（使用 Box-Muller 变换）
+    for (int i = 0; i < len; i += 2) {
+        double U1 = ((double)rand() + 1.0) / ((double)RAND_MAX + 1.0); // 避免 log(0)
+        double U2 = ((double)rand() + 1.0) / ((double)RAND_MAX + 1.0);
+        double Z1 = sqrt(-2.0 * log(U1)) * cos(2.0 * M_PI * U2);
+        double Z2 = sqrt(-2.0 * log(U1)) * sin(2.0 * M_PI * U2);
+
+        // 生成噪声
+        double noise1 = sigma * Z1;
+        double noise2 = sigma * Z2;
+        // 赋值
+        y[i] = d[i] + noise1;
+        if (i + 1 < len) {
+            y[i + 1] = d[i + 1] + noise2;
+        }
     }
 }
 

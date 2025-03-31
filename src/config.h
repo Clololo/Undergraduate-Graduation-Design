@@ -6,9 +6,8 @@
  * 实际运行参数
  * 
  */
-#define run_frames 500
-#define run_snr_db 1
-#define run_max_dc_iteration 30
+#define run_frames 1000
+#define run_max_dc_iteration 50
 #define run_alpha 0.7
 #define run_beta 0
 

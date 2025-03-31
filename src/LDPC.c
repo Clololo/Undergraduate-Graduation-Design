@@ -45,7 +45,7 @@ int ct(int *C, Graph* tanner) {
 //return 优化掉的迭代次数
 //每一次func意味着调用num_frames次generateRandomBinaryString，即完成编码num_frames次编译码过程
 double func(int particle_index, double alpha, double beta, int **H, int iteration, int num_frames, 
-    double *pop, int M, int N, int g, int **Hs, int **Hp, double snr_db, double R) {
+    double *pop, int M, int N, int g, int **Hs, int **Hp, double Eb_N0_dB, double R) {
 
     double total_iters_with_pso = 0.0;
     double total_iters = 0.0;
@@ -78,7 +78,7 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         double *ctmp2 = (double*)malloc(N * sizeof(double));
         BPSK_Modulation(C, ctmp, N);
         // 计算SNR和sigma
-        double SNR_dB = run_snr_db + 10 * log10(R) - 10 * log10(0.5);
+        double SNR_dB = Eb_N0_dB + 10 * log10(R) - 10 * log10(0.5);
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
         // AWGN信道
@@ -105,8 +105,8 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         // MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
         // //NORMAL的迭代次数-->iters1
         // MINBP_NORMAL(C, electron, &resC, tanner, iteration, alpha, beta, &iters1);
-        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
-        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
+        LDPCDecoder_NMS_WBP(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
+        LDPCDecoder_NMS_WBP(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
 
         // printf("aft:");
         // for(int i = N-M; i < N;i++){
@@ -131,9 +131,10 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         free(electron_compare);
     }
 
-    // printf("iter with pso: %.0f\n",total_iters_with_pso);        
-    // printf("iter without pso %.0f\n",total_iters);          
+    //printf("error with pso: %.0f\n",total_errors_with_pso);        
+    //printf("error without pso %.0f\n",total_errors);          
     //return (total_iters - total_iters_with_pso) / (double)num_frames;   
+    //printf("func num = %f\n",(total_errors - total_errors_with_pso) / (double)num_frames);
     return (total_errors - total_errors_with_pso) / (double)num_frames;   
 }
 
@@ -141,7 +142,7 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
     double pop[][codelength], double v[][codelength], double fitness[],
     double gbestPop[], double *gbestFitness,
     double pbestPop[][codelength], double pbestFitness[],
-    int N, int M, int g, int **Hs, int **Hp, double snr_db, double R) {
+    int N, int M, int g, int **Hs, int **Hp, double Eb_N0_dB, double R) {
     // 初始化 PSO 参数
     initPopVFit(sizePop_de, codeLen, pop, v, fitness);
     getInitBest(sizePop_de, codeLen, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
@@ -153,12 +154,16 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
     //更新窗口为100
     int update_interval = update_window;
     for (int iter = 0; iter < optimization_iters; iter += update_interval) {
-        //  每个粒子单独用于译码        
-        printf("iter%d\n",iter);
+        //  每个粒子单独用于译码   
+
+        if((iter*10)%optimization_iters == 0 && iter!= 0) printf("%d%% opt-finished\n",(iter*100/optimization_iters));
+        // for(int i = 0; i < codelength; i++ ){
+        //     printf("POP[%d] = %f\n",i,pop[0][i]);
+        // }
         for (int i = 0; i < sizePop_de; i++) {
             // == 每个func译码 update_interval次
             //在这里fitness已经更新，不需要再到update_particles更新fitness 
-            fitness[i] = func(i, alpha, beta, H, iteration, update_interval, pop[i], M, N, g, Hs, Hp, snr_db, R);
+            fitness[i] = func(i, alpha, beta, H, iteration, update_interval, pop[i], M, N, g, Hs, Hp, Eb_N0_dB, R);
            // printf("fitness = %f\n",fitness[i]);
             //printf("particle %d average opt-decoding %f times\n", i+1, fitness[i]);
         }
@@ -171,7 +176,13 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
 }
 
 void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
-
+    //重置数据
+    errorBit = 0;  //记录误码实际发生的位数
+    errorBitWithLDPC = 0;  //记录误码无法纠正的位数(PSO优化)
+    errorBitWithLDPCCompare = 0; //记录误码无法纠正的位数（无PSO优化对照）
+    errorFrame = 0;   //记录误码无法纠正的帧数
+    errorFrameWithLDPC = 0;  //记录误码无法纠正的帧数(PSO优化)
+    errorFrameWithLDPCCompare = 0;  //记录误码无法纠正的帧数（无PSO优化对照）
     iter_success = 0;
     clock_t start_time = clock();
     //参数设置 begin
@@ -214,8 +225,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     
     // 编码阶段 end
     // 粒子群优化的参数
-    
-    //粒子群优化初始化
+    // 粒子群优化初始化
     double pop[sizePop_de][codelength], v[sizePop_de][codelength], fitness[sizePop_de];    
     initPopVFit(sizePop_de, codelength, pop, v, fitness);
 
@@ -227,10 +237,10 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
                          pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
                          N*Z, M*Z, g, Hs, Hp, Eb_N0_dB, R);
 
-    for(int i = 0; i < max_read_length; i++){
-        printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
-    }
-    printf("gbestFitness = %f\n",gbestFitness);
+    // for(int i = 0; i < max_read_length; i++){
+    //     printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
+    // }
+    // printf("gbestFitness = %f\n",gbestFitness);
 
     //测试优化效果
 
@@ -260,11 +270,12 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
         
+        printf("sigma = %f\n",sigma);
         // AWGN信道
-        AWGN_Channel(ctmp, ctmp2, nz, SNR_dB, R);
+        AWGN_Channel(ctmp, ctmp2, codelength, sigma, R);
         
         // 译码端接收
-        Receiver_LLR(ctmp2, electron, nz, sigma);
+        Receiver_LLR(ctmp2, electron, codelength, sigma);
 
 
         double *electron_test = (double*)malloc(codelength * sizeof(double));
@@ -277,8 +288,8 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
 
         int error1 = 0;
 
-        LDPCDecoder_NMS_WBP(H, electron_test, run_alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, &error1, true, gbestPop);
-        LDPCDecoder_NMS_WBP(H, electron_compare, run_alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, &error1, false, gbestPop);
+        LDPCDecoder_NMS_WBP(H, electron_test, alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, &error1, true, gbestPop);
+        LDPCDecoder_NMS_WBP(H, electron_compare, alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, &error1, false, gbestPop);
         
         int testerrorBit = compareDigit(C_test, C_dup, nz);
         int compareerrorBit = compareDigit(C_compare, C_dup, nz);
@@ -330,9 +341,9 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     printf("The OPT FER is %e, NOR FER is %e\n", trueFER, trueFERcompare);
    // printf("The simulated FER is %e\nunder LDPC, the actual FER is %e\n", simulateFER, trueFER);
 
-    printHorizontalLine(WIDTH, '|', '=');
+    // printHorizontalLine(WIDTH, '|', '=');
     
-    printRow(WIDTH, " K/N    ALPHA/BETA    Bits   Frames  ITERS   BER     BER_LDPC    FER     FER_LDPC", " ");
+    // printRow(WIDTH, " K/N    ALPHA/BETA    Bits   Frames  ITERS   BER     BER_LDPC    FER     FER_LDPC", " ");
     
     // Parameters params = {
     //     .int1 = K * Z, .int2 = N * Z,
@@ -346,25 +357,21 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     // printFormattedLine(params, WIDTH);
     // 打印方框的底部边界
     // printHorizontalLine(WIDTH, '|', '=');
+
+    
     clock_t end_time = clock();
     
     // 计算运行时间
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-    
+
+    append_performance_data("output\\er_results.csv", Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, elapsed_time, elapsed_time);
+
     // 打印运行时间
     printf("total running time: %.1f ms\n", elapsed_time * 1000);
     
-    FILE *file = fopen("record/result_with_ieee.csv", "a");
-    if (file == NULL) { 
-        perror("无法打开文件");
-        return;
-    }
-
     // 将值写入文件
-  //  fprintf(file, "%.2f, %.2f,%d,%d,%d,%d,%.2e,%.2e,%.2e,%.2e,%.1f\n", alpha, beta, snr_db, allbit, frames, iteration, simulateBER, trueBER, simulateFER, trueFER, elapsed_time/10);
-
+    // fprintf(file, "%.2f, %.2f,%d,%d,%d,%d,%.2e,%.2e,%.2e,%.2e,%.1f\n", alpha, beta, snr_db, allbit, frames, iteration, simulateBER, trueBER, simulateFER, trueFER, elapsed_time/10);
     // 关闭文件
-    fclose(file);
 }
 
 

@@ -210,6 +210,8 @@ int read_number_from_csv(const char *filename, int *number) {
     return 0;  // 读取成功
 }
 
+#define HEADER "SNR(dB),BER_OPT,BER,FER_OPT,FER,ITER_OPT,ITER\n"
+
 int append_performance_data(const char* filename, 
     double snr_db, 
     double ber_opt,
@@ -218,15 +220,37 @@ int append_performance_data(const char* filename,
     double fer,
     double iter_opt,
     double iter) {
-    FILE* file = fopen(filename, "a");  // 以追加模式打开文件
+    
+    // 先检查文件是否已有标题
+    FILE* file = fopen(filename, "r");  // 以只读模式检查
+    int has_header = 0;
+
+    if (file) {  // 文件存在
+        char first_line[256];
+        if (fgets(first_line, sizeof(first_line), file)) { 
+            // 读取第一行并检查是否与 HEADER 相同
+            if (strstr(first_line, "SNR(dB)") != NULL) {
+                has_header = 1;
+            }
+        }
+        fclose(file);
+    } 
+
+    // 以追加模式打开文件
+    file = fopen(filename, "a");
     if (file == NULL) {
         perror("Error opening file");
         return -1;
     }
 
-    // 写入数据，格式为：snr,ber_opt,ber,fer_opt,fer
+    // 如果没有标题，先写入标题
+    if (!has_header) {
+        fprintf(file, "%s", HEADER);
+    }
+
+    // 追加写入数据
     int result = fprintf(file, "%.2f,%.2e,%.2e,%.2e,%.2e,%.2e,%.2e\n", 
-    snr_db, ber_opt, ber, fer_opt, fer, iter_opt, iter);
+        snr_db, ber_opt, ber, fer_opt, fer, iter_opt, iter);
 
     if (result < 0) {
         perror("Error writing to file");

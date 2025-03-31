@@ -9,6 +9,7 @@
 void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax, 
     int m, int n, int* v, int *useIter, int *errorNum, bool useWBP, double* weights) {
     // 初始化变量
+
     double* U0i = (double*)malloc(n * sizeof(double));
     double** Uji = (double**)malloc(m * sizeof(double*));
     double** Vij = (double**)malloc(n * sizeof(double*));
@@ -70,7 +71,7 @@ void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax,
 
                     // 应用NMS或WBP
                     if (useWBP) {
-                        Uji[j][i] = prodSign * minVal * weights[j]; // WBP使用节点特定权重
+                        Uji[j][i] = prodSign * minVal * weights[j] * alpha; // WBP使用节点特定权重
                     } else {
                         Uji[j][i] = prodSign * minVal * alpha; // NMS使用全局alpha
                     }
@@ -134,5 +135,4 @@ void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax,
     free(Uji);
     free(Vij);
     free(x);
-
 }

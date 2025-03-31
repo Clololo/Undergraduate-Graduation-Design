@@ -3,7 +3,6 @@
 
 int main(){
     // frame snr iteration alpha beta 
-    // for(int snr = 1;snr<=31;snr++)
-    //     run(10000, snr, 50, 0.7, 0);
-    run(run_frames, run_snr_db, run_max_dc_iteration, run_alpha, run_beta);
+    for(double snr = 1.0; snr <= 3.0; snr += 0.5)
+        run(run_frames, snr, run_max_dc_iteration, run_alpha, run_beta);
 } 
