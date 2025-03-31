@@ -20,5 +20,13 @@ int pegsrc_save_to_csv(const char *filename, double rho[], double lambda[], int 
 int read_csv_column(const char* filename, int* data, int size);
 void write_number_to_csv(const char *filename, int number);
 int read_number_from_csv(const char *filename, int *number);
+int append_performance_data(const char* filename, 
+    double snr_db, 
+    double ber_opt,
+    double ber,
+    double fer_opt,
+    double fer,
+    double iter_opt,
+    double iter) ;
 
 #endif

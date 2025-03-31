@@ -209,3 +209,31 @@ int read_number_from_csv(const char *filename, int *number) {
     fclose(file);
     return 0;  // 读取成功
 }
+
+int append_performance_data(const char* filename, 
+    double snr_db, 
+    double ber_opt,
+    double ber,
+    double fer_opt,
+    double fer,
+    double iter_opt,
+    double iter) {
+    FILE* file = fopen(filename, "a");  // 以追加模式打开文件
+    if (file == NULL) {
+        perror("Error opening file");
+        return -1;
+    }
+
+    // 写入数据，格式为：snr,ber_opt,ber,fer_opt,fer
+    int result = fprintf(file, "%.2f,%.2e,%.2e,%.2e,%.2e,%.2e,%.2e\n", 
+    snr_db, ber_opt, ber, fer_opt, fer, iter_opt, iter);
+
+    if (result < 0) {
+        perror("Error writing to file");
+        fclose(file);
+        return -1;
+    }
+
+    fclose(file);
+    return 0;
+}

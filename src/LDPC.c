@@ -47,31 +47,40 @@ int ct(int *C, Graph* tanner) {
 double func(int particle_index, double alpha, double beta, int **H, int iteration, int num_frames, 
     double *pop, int M, int N, int g, int **Hs, int **Hp, double snr_db, double R) {
 
-    double total_iters_with_pso = 0;
-    double total_iters = 0;
+    double total_iters_with_pso = 0.0;
+    double total_iters = 0.0;
     int success_frames = 0;
+    double total_errors_with_pso = 0.0;
+    double total_errors = 0.0;
 
     for (int f = 0; f < num_frames; f++) {
 
         // 生成信息位
         int *randomS = (int *)malloc((N - M) * sizeof(double));    
         generateS(N - M, randomS);
+        // printf("pre:");
+        // for(int i = 0; i < N-M;i++){
+        //     printf("%d",randomS[i]);
+        // }
+        // printf("\n");
         // 生成码
         int *C = (int *)malloc((N) * sizeof(double));
-        Encoder2(Hs, Hp, randomS, bgm, bgn, bgz, C);
+        Encoder2(Hs, Hp, randomS, bgm, bgn - bgm, bgz, C);
+
+        // printf("enc:");
+        // for(int i = 0; i < N;i++){
+        //     printf("%d",C[i]);
+        // }
+        // printf("\n");
         // 添加噪声'
-        printf("here");
         double *electron = (double*)malloc(N * sizeof(double));
         double *ctmp = (double*)malloc(N * sizeof(double));
         double *ctmp2 = (double*)malloc(N * sizeof(double));
-        //printf("here");
         BPSK_Modulation(C, ctmp, N);
-        //printf("here");
         // 计算SNR和sigma
         double SNR_dB = run_snr_db + 10 * log10(R) - 10 * log10(0.5);
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
-        //printf("here");
         // AWGN信道
         AWGN_Channel(ctmp, ctmp2, N, SNR_dB, R);
         
@@ -90,16 +99,25 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         int *resC = (int*)malloc(codelength * sizeof(int));
         int iters;
         int iters1;
+        int error1 = 0;
+        int error2 = 0;
         // //PSO优化后的迭代次数-->iters 
         // MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
         // //NORMAL的迭代次数-->iters1
         // MINBP_NORMAL(C, electron, &resC, tanner, iteration, alpha, beta, &iters1);
-        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters, true, pop);
-        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters1, false, pop);
+        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
+        LDPCDecoder_NMS_WBP(H, electron, run_alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
 
+        // printf("aft:");
+        // for(int i = N-M; i < N;i++){
+        //     printf("%d",resC[i]);
+        // }
+        // printf("\n----------------------------------------------------\n");
       //  printf("%d %d||", iters, iters1); 
         total_iters_with_pso += (double)iters;
         total_iters += (double)iters1;
+        total_errors_with_pso += error1;
+        total_errors += error2;
        // compareDigit(resC, C_dup, N * Z);
 
         // 释放内存
@@ -113,9 +131,10 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         free(electron_compare);
     }
 
-    printf("iter with pso: %.0f\n",total_iters_with_pso);        
-    printf("iter without pso %.0f\n",total_iters);          
-    return (total_iters - total_iters_with_pso) / (double)num_frames;    
+    // printf("iter with pso: %.0f\n",total_iters_with_pso);        
+    // printf("iter without pso %.0f\n",total_iters);          
+    //return (total_iters - total_iters_with_pso) / (double)num_frames;   
+    return (total_errors - total_errors_with_pso) / (double)num_frames;   
 }
 
 void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLen, int decoding_time, int iteration, 
@@ -134,7 +153,8 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
     //更新窗口为100
     int update_interval = update_window;
     for (int iter = 0; iter < optimization_iters; iter += update_interval) {
-        //  每个粒子单独用于译码
+        //  每个粒子单独用于译码        
+        printf("iter%d\n",iter);
         for (int i = 0; i < sizePop_de; i++) {
             // == 每个func译码 update_interval次
             //在这里fitness已经更新，不需要再到update_particles更新fitness 
@@ -215,7 +235,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     //测试优化效果
 
     for(int i = 0; i < frames; i++){
-
+        if((i*10)%frames == 0 && i!= 0) printf("%d%% finished\n",(i*100/frames));
         int *S = (int*)malloc(codelength * sizeof(int));
         generateS(Slen, S);
     
@@ -229,7 +249,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         int *C = (int*)malloc(codelength * sizeof(int));
         int *C_dup = (int*)malloc(codelength * sizeof(int));
 
-        Encoder2(Hs, Hp, S, bgm, bgn, bgz, C);
+        Encoder2(Hs, Hp, S, bgm, bgn - bgm, bgz, C);
         memcpy(C_dup, C,  N * Z * sizeof(int));
 
         // BPSK调制
@@ -255,14 +275,19 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         int iter_test = 0;
         int iter_compare = 0;
 
-        LDPCDecoder_NMS_WBP(H, electron_test, run_alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, true, gbestPop);
-        LDPCDecoder_NMS_WBP(H, electron_compare, run_alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, false, gbestPop);
+        int error1 = 0;
+
+        LDPCDecoder_NMS_WBP(H, electron_test, run_alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, &error1, true, gbestPop);
+        LDPCDecoder_NMS_WBP(H, electron_compare, run_alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, &error1, false, gbestPop);
         
         int testerrorBit = compareDigit(C_test, C_dup, nz);
         int compareerrorBit = compareDigit(C_compare, C_dup, nz);
 
         errorBitWithLDPC += testerrorBit;
         errorBitWithLDPCCompare += compareerrorBit;
+
+        if(testerrorBit != 0) errorFrameWithLDPC ++;
+        if(compareerrorBit != 0) errorFrameWithLDPCCompare ++;
 
         countTest += iter_test;
         countCompare += iter_compare;
@@ -281,8 +306,11 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
 
     errorFrame /= 2;  //调用实验组和对照组加了两次
 
-    float simulateBER = (double)((double)errorBit / (double)allbit);
+    //float simulateBER = (double)((double)errorBit / (double)allbit);
     float trueBER = (double)((double)errorBitWithLDPC / (double)allbit);
+    float trueBERcompare = (double)((double)errorBitWithLDPCCompare / (double)allbit);
+    float trueFER = (double)((double)errorFrameWithLDPC / (double)frames);
+    float trueFERcompare = (double)((double)errorFrameWithLDPCCompare / (double)frames);
 
     //float simulateFER = (double)((double)errorFrame / (double)frames);
    // float trueFER = (double)((double)errorFrameWithLDPC / (double)frames);
@@ -290,15 +318,16 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     printf("-----------------------------------------------------\n\n");
     printf("%d %d %lld\n",errorBit,errorBitWithLDPC,allbit);
     printf("bits transmitted: %d frames transmitted: %d\n",allbit, frames);
-    printf("WRONG bits in transmission: %d\n",errorBit);
+    //printf("WRONG bits in transmission: %d\n",errorBit);
     printf("WRONG bits after LDPC: %d\n",errorBitWithLDPC);
     printf("WRONG bits after LDPC(compare): %d\n", errorBitWithLDPCCompare);
    // printf("WRONG frames in transmission: %d\n",errorFrame);
-   // printf("WRONG frames after LDPC: %d\n",errorFrameWithLDPC);
-   // printf("WRONG frames after LDPC(compare): %d\n", errorFrameWithLDPCCompare);
+    printf("WRONG frames after LDPC: %d\n",errorFrameWithLDPC);
+    printf("WRONG frames after LDPC(compare): %d\n", errorFrameWithLDPCCompare);
     printf("total iter:%d\n",countTest);
     printf("total iter(compare):%d\n",countCompare);
-    printf("The simulated BER is %e\nunder LDPC, the actual BER is %e\n", simulateBER, trueBER);
+    printf("The OPT BER is %e, NOR BER is %e\n", trueBER, trueBERcompare);
+    printf("The OPT FER is %e, NOR FER is %e\n", trueFER, trueFERcompare);
    // printf("The simulated FER is %e\nunder LDPC, the actual FER is %e\n", simulateFER, trueFER);
 
     printHorizontalLine(WIDTH, '|', '=');

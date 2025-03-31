@@ -39,9 +39,7 @@ void HxMatrixGen(int H_block[][bgn], int mb, int nb, int z, int** H, int** Hp, i
     }
     
     // 3. 特殊修正（对应MATLAB的H(1,1008)=0）
-    if (mb == 18 && z == 56 && nb == 36) {
-        H[0][1007] = 0; // C索引从0开始
-    }
+    H[0][63] = 0; // C索引从0开始
     
     // 4. 提取Hp和Hs子矩阵
     for (i = 0; i < mb*z; i++) {
@@ -73,14 +71,13 @@ void Encoder2(int** Hs, int** Hp, int* s, int mb, int kb, int z, int* x) {
     // 1. 计算w = s * Hs^T
     for (i = 0; i < mb*z; i++) {
         for (j = 0; j < kb*z; j++) {
-            w[i] += s[j] * Hs[j][i]; // 矩阵乘法
-            printf("w[%d] = %d\n",i,w[i]);
-        }
-        w[i] %= 2; // 模2运算
+            w[i] ^= (s[j] & Hs[i][j]);    // 按位异或实现模2加法 // 矩阵乘法
+           // printf("w[%d] = %d\n",i,w[i]);
+        } 
     }
 
     // 2. 计算校验比特p（算法2）
-    p[0] = w[0];
+    p[0] = w[0] % 2;
     idx = 0;
     for (i = 0; i < mb*z; i++) {
         if (idx > (mb-1)*z && idx <= mb*z-1) {

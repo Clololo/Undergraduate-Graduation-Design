@@ -7,13 +7,14 @@
 #include "../encoding/encode.h"
 
 void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax, 
-    int m, int n, int* v, int *useIter, bool useWBP, double* weights) {
+    int m, int n, int* v, int *useIter, int *errorNum, bool useWBP, double* weights) {
     // 初始化变量
     double* U0i = (double*)malloc(n * sizeof(double));
     double** Uji = (double**)malloc(m * sizeof(double*));
     double** Vij = (double**)malloc(n * sizeof(double*));
     int* x = (int*)malloc(n * sizeof(int));
     *useIter = error_punish;
+    *errorNum = 0;
 
     for (int i = 0; i < m; i++) {
         Uji[i] = (double*)malloc(n * sizeof(double));
@@ -109,6 +110,18 @@ void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax,
         }
     }
 
+    for (int j = 0; j < m; j++) {
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            if (H[j][i] == 1) {
+                sum += x[i];
+            }
+        }
+        if (sum % 2 != 0) {
+            *errorNum += 1;
+        }
+    }
+
     // 提取信息位 
     for (int i = 0; i < n; i++) {
         v[i] = x[i];
@@ -121,4 +134,5 @@ void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax,
     free(Uji);
     free(Vij);
     free(x);
+
 }
