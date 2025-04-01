@@ -6,10 +6,11 @@
  * 实际运行参数
  * 
  */
-#define run_frames 1000
-#define run_max_dc_iteration 50
+#define run_frames 100
+#define run_max_dc_iteration 30
 #define run_alpha 0.7
 #define run_beta 0
+#define usepsogenH 0  //1表示使用PSO优化的校验矩阵
 
 //标准循环移位矩阵配置
 #define checknodeNum 72   //*SubmatrixSize为实际长度
@@ -36,8 +37,8 @@
 #define MAX_ITER 800   //高斯近似计算SNR阈值时的最大迭代次数
 #define max_read_length 144   //上限读取值
 #define pred_vn_l 72    //预期变量节点数量
-#define pred_cn_l 72  //预期校验节点数量
-#define init_cn_deg 4  //开始优化时的初始度分布预设
+#define pred_cn_l 72 //预期校验节点数量
+#define init_cn_deg 4 //开始优化时的初始度分布预设
 #define init_vn_deg 2  //开始优化时的初始度分布预设
 #define pred_code_rate_lowlimit 0.49  //预期的最低码率
 #define pre_code_rate_limit 0.6  //预期的最高码率
@@ -47,6 +48,7 @@
 #define dimlimit 144
 #define alpha_penalty 10
 #define beta_penalty 10
+
 //参数选择
 #define en_lr0 0.49
 #define en_lr1 0.69
@@ -54,6 +56,7 @@
 #define en_rangepophigh 1.0
 #define en_rangevlow -0.03
 #define en_rangevhigh 0.03
+
 /**
  * PSO译码优化
  * 
@@ -62,9 +65,10 @@
 #define sizePop_de 30   //粒子规模
 #define max_iteration 50  //译码尝试次数上限
 #define init_fitness 0  
-#define update_window 20  //每更新一次粒子位置的译码次数
-#define error_punish 100  //译码出错时等效迭代次数
-#define opt_rate 0.2   //用于优化的次数占总译码次数的比例
+#define error_punish 50  //译码出错时等效迭代次数
+#define update_window 5  //每更新一次粒子位置的译码次数
+#define opt_time 40   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
+
 //参数选择
 #define de_lr0 0.89
 #define de_lr1 1.89

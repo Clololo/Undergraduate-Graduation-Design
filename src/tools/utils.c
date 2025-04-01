@@ -99,9 +99,27 @@ int compareDigit(int *array1, int *array2, int length) {
     return errorBit;
 }
 
+int check_codeword(int **H, int *C, int m, int n) {
+    int i, j;
+    int valid = 1; // 1 表示码字有效, 0 表示无效
+
+    for (i = 0; i < m; i++) {
+        int sum = 0;
+        for (j = 0; j < n; j++) {
+            sum += H[i][j] * C[j]; // 计算 H * C
+        }
+        if (sum % 2 != 0) { // 取模 2，检查是否全为 0
+            valid = 0;
+            break;
+        }
+    }
+    
+    return valid;
+}
+
 // Function to generate a random binary string of given length
 void generateS(int length, int *binaryString) {
     for (int i = 0; i < length; i++) {
-        binaryString[i] = (rand() % 2) ? 1 : 0;
+        binaryString[i] = (rand() / (double)RAND_MAX) < 0.5 ? 0 : 1;
     }
 }

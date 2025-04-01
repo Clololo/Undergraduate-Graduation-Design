@@ -65,7 +65,7 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         // printf("\n");
         // 生成码
         int *C = (int *)malloc((N) * sizeof(double));
-        Encoder2(Hs, Hp, randomS, bgm, bgn - bgm, bgz, C);
+        Encoder(H, Hs, Hp, randomS, bgm, bgn - bgm, bgz, C);
 
         // printf("enc:");
         // for(int i = 0; i < N;i++){
@@ -105,8 +105,8 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         // MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
         // //NORMAL的迭代次数-->iters1
         // MINBP_NORMAL(C, electron, &resC, tanner, iteration, alpha, beta, &iters1);
-        LDPCDecoder_NMS_WBP(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
-        LDPCDecoder_NMS_WBP(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
+        LDPCDecoder(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
+        LDPCDecoder(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
 
         // printf("aft:");
         // for(int i = N-M; i < N;i++){
@@ -133,9 +133,9 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
 
     //printf("error with pso: %.0f\n",total_errors_with_pso);        
     //printf("error without pso %.0f\n",total_errors);          
-    //return (total_iters - total_iters_with_pso) / (double)num_frames;   
+    return (total_iters - total_iters_with_pso) / (double)num_frames;   
     //printf("func num = %f\n",(total_errors - total_errors_with_pso) / (double)num_frames);
-    return (total_errors - total_errors_with_pso) / (double)num_frames;   
+    //return (total_errors - total_errors_with_pso) / (double)num_frames;   
 }
 
 void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLen, int decoding_time, int iteration, 
@@ -143,19 +143,13 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
     double gbestPop[], double *gbestFitness,
     double pbestPop[][codelength], double pbestFitness[],
     int N, int M, int g, int **Hs, int **Hp, double Eb_N0_dB, double R) {
-    // 初始化 PSO 参数
-    initPopVFit(sizePop_de, codeLen, pop, v, fitness);
-    getInitBest(sizePop_de, codeLen, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
 
     // 进行 PSO 优化
     // 总解码次数  decoding_time次，前decoding_time *0.2次用于PSO优化
-    int optimization_iters = (int)((double)decoding_time * opt_rate);
-
-    //更新窗口为100
+    int optimization_iters = opt_time;
     int update_interval = update_window;
     for (int iter = 0; iter < optimization_iters; iter += update_interval) {
         //  每个粒子单独用于译码   
-
         if((iter*10)%optimization_iters == 0 && iter!= 0) printf("%d%% opt-finished\n",(iter*100/optimization_iters));
         // for(int i = 0; i < codelength; i++ ){
         //     printf("POP[%d] = %f\n",i,pop[0][i]);
@@ -175,7 +169,7 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
     getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
 }
 
-void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
+void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bool UsePSOGenH){
     //重置数据
     errorBit = 0;  //记录误码实际发生的位数
     errorBitWithLDPC = 0;  //记录误码无法纠正的位数(PSO优化)
@@ -208,9 +202,6 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     
     int H_block[bgm][bgn];
     int bg_rows, bg_cols;
-    
-    read_base_graph("src\\bg2.csv", H_block, &bg_rows, &bg_cols);
-    printf("Base graph loaded: %d x %d\n", bg_rows, bg_cols);
 
     int** H = (int**)malloc(mb*z * sizeof(int*));
     int** Hp = (int**)malloc(mb*z * sizeof(int*));
@@ -221,8 +212,17 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         Hs[i] = (int*)malloc(kb*z * sizeof(int));
     }
     
-    HxMatrixGen(H_block, mb, nb, z, H, Hp, Hs);
-    
+    //通过定义的H_block得到校验矩阵
+    if(!UsePSOGenH) {
+        read_base_graph("src\\bg2.csv", H_block, &bg_rows, &bg_cols);
+        printf("Base graph loaded: %d x %d\n", bg_rows, bg_cols);
+        HGenerator(H_block, mb, nb, z, H, Hp, Hs);
+    }
+    //通过PSO得到优化的校验矩阵
+    else{
+        PSOHGenerator("output/optim_checkmatrix.csv", mz, nz, H, Hp, Hs);
+    }
+
     // 编码阶段 end
     // 粒子群优化的参数
     // 粒子群优化初始化
@@ -233,14 +233,17 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
     double gbestPop[codelength], gbestFitness;    
     double pbestPop[sizePop_de][codelength], pbestFitness[sizePop_de];
     //使用PSO对权重最优值进行搜索
+    initPopVFit(sizePop_de, codelength, pop, v, fitness);
+    getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness);
+
     pso_optimize_min_sum(H, alpha, beta, sizePop_de, codelength, frames, max_iteration, \
                          pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
                          N*Z, M*Z, g, Hs, Hp, Eb_N0_dB, R);
 
-    // for(int i = 0; i < max_read_length; i++){
-    //     printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
-    // }
-    // printf("gbestFitness = %f\n",gbestFitness);
+    for(int i = 0; i < max_read_length; i++){
+        printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
+    }
+    printf("gbestFitness = %f\n",gbestFitness);
 
     //测试优化效果
 
@@ -259,8 +262,9 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         int *C = (int*)malloc(codelength * sizeof(int));
         int *C_dup = (int*)malloc(codelength * sizeof(int));
 
-        Encoder2(Hs, Hp, S, bgm, bgn - bgm, bgz, C);
+        Encoder(H, Hs, Hp, S, bgm, bgn - bgm, bgz, C);
         memcpy(C_dup, C,  N * Z * sizeof(int));
+       
 
         // BPSK调制
         BPSK_Modulation(C, ctmp, nz);
@@ -270,14 +274,17 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
         
-        printf("sigma = %f\n",sigma);
+        //printf("sigma = %f\n",sigma);
         // AWGN信道
         AWGN_Channel(ctmp, ctmp2, codelength, sigma, R);
         
         // 译码端接收
         Receiver_LLR(ctmp2, electron, codelength, sigma);
-
-
+        // for(int i = 0; i < 10;i++) printf("%.3f ",ctmp[i]);
+        // printf("\n");
+        // for(int i = 0; i < 10;i++) printf("%.3f ",ctmp2[i]);
+        // printf("\n");
+        // printf("-----------------\n");
         double *electron_test = (double*)malloc(codelength * sizeof(double));
         double *electron_compare = (double*)malloc(codelength * sizeof(double));
         memcpy(electron_test, electron, nz * sizeof(double));
@@ -288,8 +295,8 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta){
 
         int error1 = 0;
 
-        LDPCDecoder_NMS_WBP(H, electron_test, alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, &error1, true, gbestPop);
-        LDPCDecoder_NMS_WBP(H, electron_compare, alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, &error1, false, gbestPop);
+        LDPCDecoder(H, electron_test, alpha, run_max_dc_iteration, mz, nz, C_test, &iter_test, &error1, true, gbestPop);
+        LDPCDecoder(H, electron_compare, alpha, run_max_dc_iteration, mz, nz, C_compare, &iter_compare, &error1, false, gbestPop);
         
         int testerrorBit = compareDigit(C_test, C_dup, nz);
         int compareerrorBit = compareDigit(C_compare, C_dup, nz);

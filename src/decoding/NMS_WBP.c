@@ -6,7 +6,7 @@
 #include "../config.h"
 #include "../encoding/encode.h"
 
-void LDPCDecoder_NMS_WBP(int** H, double* LLR_y, double alpha, int iterMax, 
+void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax, 
     int m, int n, int* v, int *useIter, int *errorNum, bool useWBP, double* weights) {
     // 初始化变量
 

@@ -61,19 +61,15 @@ void swap_rows(int ***matrix, int row1, int row2, int size) {
 }
 
 // 求方阵的逆矩阵
-bool matrix_inverse(int **matrix, int ***inverse, int size) {
+bool matrix_inverse(int **matrix, int **inverse, int size) {
     int i, j, k;
-    *inverse = (int **)malloc(size * sizeof(int *));
-    for (int i = 0; i < size; i++) {
-        (*inverse)[i] = (int *)malloc(size * sizeof(int));
-    }
     // 初始化逆矩阵为单位矩阵
     for (i = 0; i < size; i++) {
         for (j = 0; j < size; j++) {
             if (i == j)
-                (*inverse)[i][j] = 1;
+                inverse[i][j] = 1;
             else
-                (*inverse)[i][j] = 0;
+                inverse[i][j] = 0;
         }
     }
 
@@ -83,7 +79,7 @@ bool matrix_inverse(int **matrix, int ***inverse, int size) {
         exp[i] = (int *)malloc(2 * size * sizeof(int));
         for (j = 0; j < size; j++) {
             exp[i][j] = matrix[i][j];
-            exp[i][j + size] = (*inverse)[i][j];
+            exp[i][j + size] = inverse[i][j];
         }
     }
 
@@ -101,7 +97,7 @@ bool matrix_inverse(int **matrix, int ***inverse, int size) {
 
         int pivot = exp[i][i];
         if (pivot == 0) {
-           // printf("Matrix is singular and cannot be inverted.\n");
+            // printf("Matrix is singular and cannot be inverted.\n");
             return false;
         }
 
@@ -115,7 +111,7 @@ bool matrix_inverse(int **matrix, int ***inverse, int size) {
             if (k != i) {
                 int factor = exp[k][i];
                 for (j = 0; j < 2 * size; j++) {
-                    exp[k][j] ^= factor * exp[i][j];
+                    exp[k][j] ^= factor & exp[i][j];
                 }
             }
         }
@@ -124,7 +120,7 @@ bool matrix_inverse(int **matrix, int ***inverse, int size) {
     // 提取逆矩阵
     for (i = 0; i < size; i++) {
         for (j = 0; j < size; j++) {
-            (*inverse)[i][j] = exp[i][j + size];
+            inverse[i][j] = exp[i][j + size];
         }
         free(exp[i]);
     }
@@ -133,16 +129,10 @@ bool matrix_inverse(int **matrix, int ***inverse, int size) {
 }
 
 // 矩阵转置
-void transposeMatrix(int **A, int ***B, int rows, int cols) {
-    // Allocate memory for the output matrix
-    *B = (int **)malloc(cols * sizeof(int *));
-    for (int i = 0; i < cols; i++) {
-        (*B)[i] = (int *)malloc(rows * sizeof(int));
-    }
-
+void transposeMatrix(int **A, int **B, int rows, int cols) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            (*B)[j][i] = A[i][j];
+            B[j][i] = A[i][j];
         }
     }
 }

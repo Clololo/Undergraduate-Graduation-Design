@@ -5,13 +5,7 @@
 
 extern int iters_tmp;
 
-// 获取学习因子
-void getLearningRate(double lr[2]);
-// 粒子位置范围，以度数比
-void getRangePop(double rangePop[2]);
-// 粒子速度范围
-void getRangeSpeed(double rangeSpeed[2]);
-//损失函数
+
 // 初始化种群、速度和适应度
 void initPopVFit(int size, int codeLen, double pop[][codelength], double v[][codelength], double fitness[]);
 // 获取初始最优值
