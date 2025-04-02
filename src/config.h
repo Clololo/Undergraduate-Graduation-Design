@@ -6,11 +6,11 @@
  * 实际运行参数
  * 
  */
-#define run_frames 100
+#define run_frames 500
 #define run_max_dc_iteration 30
 #define run_alpha 0.7
 #define run_beta 0
-#define usepsogenH 0  //1表示使用PSO优化的校验矩阵
+#define usepsogenH 1 //1表示使用PSO优化的校验矩阵
 
 //标准循环移位矩阵配置
 #define checknodeNum 72   //*SubmatrixSize为实际长度
@@ -67,7 +67,7 @@
 #define init_fitness 0  
 #define error_punish 50  //译码出错时等效迭代次数
 #define update_window 5  //每更新一次粒子位置的译码次数
-#define opt_time 40   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
+#define opt_time 100   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
 
 //参数选择
 #define de_lr0 0.89

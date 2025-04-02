@@ -66,7 +66,6 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         // 生成码
         int *C = (int *)malloc((N) * sizeof(double));
         Encoder(H, Hs, Hp, randomS, bgm, bgn - bgm, bgz, C);
-
         // printf("enc:");
         // for(int i = 0; i < N;i++){
         //     printf("%d",C[i]);
@@ -221,6 +220,36 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     //通过PSO得到优化的校验矩阵
     else{
         PSOHGenerator("output/optim_checkmatrix.csv", mz, nz, H, Hp, Hs);
+
+        if(is_full_rank(H, mz, nz) && is_full_rank(Hp, mz, mz) && is_full_rank(Hs, mz, nz-mz)){
+            printf("Generate valid Matrix\n");
+        }
+        else{
+            printf("Generate INVALID Matrix!!!\n");
+            return;
+        }
+
+        // for(int i = 0; i < mz; i++){
+        //     for(int j = 0; j < nz ;j++){
+        //         printf("%d",H[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("----------------------------\n");
+        // for(int i = 0; i < mz; i++){
+        //     for(int j = 0; j < mz ;j++){
+        //         printf("%d",Hp[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("----------------------------\n");
+        // for(int i = 0; i < mz; i++){
+        //     for(int j = 0; j < nz - mz ;j++){
+        //         printf("%d",Hs[i][j]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("----------------------------\n");
     }
 
     // 编码阶段 end
@@ -240,10 +269,10 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
                          pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
                          N*Z, M*Z, g, Hs, Hp, Eb_N0_dB, R);
 
-    for(int i = 0; i < max_read_length; i++){
-        printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
-    }
-    printf("gbestFitness = %f\n",gbestFitness);
+    // for(int i = 0; i < max_read_length; i++){
+    //     printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
+    // }
+    // printf("gbestFitness = %f\n",gbestFitness);
 
     //测试优化效果
 
@@ -263,6 +292,8 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
         int *C_dup = (int*)malloc(codelength * sizeof(int));
 
         Encoder(H, Hs, Hp, S, bgm, bgn - bgm, bgz, C);
+
+
         memcpy(C_dup, C,  N * Z * sizeof(int));
        
 

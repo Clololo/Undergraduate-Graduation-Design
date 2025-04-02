@@ -78,6 +78,10 @@ void PSOHGenerator(const char *filename, int m, int n, int** H, int** Hp, int** 
         fgetc(file);
     }
 
+    printf("get a %d*%d H from file %s\n", m, n, filename);
+
+    adjust_H(H, m, n);
+
     for (i = 0; i < m; i++) {
         for (j = 0; j < m; j++) {
             Hp[i][j] = H[i][j];
@@ -86,7 +90,6 @@ void PSOHGenerator(const char *filename, int m, int n, int** H, int** Hp, int** 
             Hs[i][j - m] = H[i][j];
         }
     }
-    printf("get a %d*%d H from file %s\n", m, n, filename);
 
     fclose(file);
 }
@@ -110,20 +113,26 @@ void Encoder(int** H, int** Hs, int** Hp, int* s, int mb, int kb, int z, int* x)
     // 1. 计算w = s * Hs^T
     for (i = 0; i < mb*z; i++) {
         for (j = 0; j < kb*z; j++) {
-            w[i] ^= (s[j] & Hs[i][j]);    
-            // printf("w[%d] = %d\n",i,w[i]);
+            w[i] ^= (s[j] & Hs[i][j]);   
+            //printf("w[%d] ^= %d & %d\n",i,s[j],Hs[i][j]); 
         } 
     }
 
     int** HpT = (int**)malloc((mb+kb)*z * sizeof(int*));
+    int** HsT = (int**)malloc((mb+kb)*z * sizeof(int*));
     int** HpT_inv = (int**)malloc((mb+kb)*z * sizeof(int*));
     for (int i = 0; i < (mb+kb)*z; i++) {
         HpT[i] = (int*)malloc((mb+kb)*z * sizeof(int));
+        HsT[i] = (int*)malloc((mb+kb)*z * sizeof(int));
         HpT_inv[i] = (int*)malloc((mb+kb)*z * sizeof(int));
     }
 
     transposeMatrix(Hp, HpT, mb*z, mb*z);
-    matrix_inverse(HpT, HpT_inv, mb*z);
+    transposeMatrix(Hs, HsT, mb*z, kb*z);
+    if(!matrix_inverse(HpT, HpT_inv, mb*z)){
+        printf("fail to get a inverse Mat\n");
+        return;
+    }
 
     // 2. 计算p = w * (Hp^T)^(-1)
     for (i = 0; i < mb*z; i++) {
@@ -132,27 +141,13 @@ void Encoder(int** H, int** Hs, int** Hp, int* s, int mb, int kb, int z, int* x)
         } 
     }
 
-    // // 2. 计算校验比特p（算法2）
-    // p[0] = w[0] % 2;
-    // idx = 0;
-    // for (i = 0; i < mb*z; i++) {
-    //     if (idx > (mb-1)*z && idx <= mb*z-1) {
-    //         int new_idx = idx - (mb-1)*z;
-    //         p[new_idx] ^= (w[new_idx] & p[idx]);
-    //         idx = new_idx;
-    //     } 
-    //     else if (idx >= 0 && idx <= (mb-1)*z) {
-    //         p[z + idx] ^= (w[z + idx] & p[idx]);
-    //         idx += z;
-    //     }
-    // }
-    // p[mb*z-1] ^= (w[mb*z-1] & p[(mb-1)*z]); // 最后一位
-
     // 3. 组合编码序列x = [p s]
     memcpy(x, p, mb*z * sizeof(int));
     memcpy(x + mb*z, s, kb*z * sizeof(int));
-    
-    //printf("VALID = %d\n",check_codeword(H, x, mb*z, (mb+kb)*z));
+
     free(w);
     free(p);
+    free(HsT);
+    free(HpT);
+    free(HpT_inv);
 }
