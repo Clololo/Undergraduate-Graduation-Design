@@ -191,7 +191,7 @@ public:
         }
     
         file.close();
-        std::cout << "邻接矩阵已保存到 " << filename << std::endl;
+        std::cout << "邻接矩阵" << m << "*" << n << " 已保存到 " << filename << std::endl;
     }
 
     // SubGraph class definition

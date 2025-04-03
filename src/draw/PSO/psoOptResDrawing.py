@@ -1,49 +1,70 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
 def plot_ber_comparison(csv_file, output_img=None, mode=1):
-    """
-    »æÖÆLDPCÓÅ»¯Ç°ºóÎóÂëÂÊ¶Ô±ÈÇúÏß
-    
-    ²ÎÊı:
-        csv_file: ÊäÈëCSVÎÄ¼şÂ·¾¶£¬°üº¬ÈıÁĞ£º
-                 - µÚ1ÁĞ: Eb/N0 (dB)
-                 - µÚ2ÁĞ: ÓÅ»¯ºóµÄBER
-                 - µÚ3ÁĞ: Î´ÓÅ»¯µÄBER
-        output_img: Êä³öÍ¼Æ¬Â·¾¶(¿ÉÑ¡)£¬ÈçÎ´Ö¸¶¨ÔòÏÔÊ¾Í¼Ïñ
-    """
-    # ¶ÁÈ¡Êı¾İ
+    # è¯»å–æ•°æ®
     data = pd.read_csv(csv_file, header=None)
-    ebno_db = data.iloc[:, 0]
-    ber_optimized = data.iloc[:, 1]
-    ber_original = data.iloc[:, 2]
-    fer_optimized = data.iloc[:, 3]
-    fer_original = data.iloc[:, 4]
+    ebno_db = data.iloc[:, 0].astype(float)
+    ber_deoptimized = data.iloc[:, 1].astype(float)
+    ber_original = data.iloc[:, 2].astype(float)
+    ber_deenoptimized = data.iloc[:, 7].astype(float)
+    ber_enoptimized = data.iloc[:, 8].astype(float)
+    fer_deoptimized = data.iloc[:, 3].astype(float)
+    fer_original = data.iloc[:, 4].astype(float)
+    fer_deenoptimized = data.iloc[:, 9].astype(float)
+    fer_enoptimized = data.iloc[:, 10].astype(float)
+    print(ebno_db)
+    print(ber_deoptimized)
+    print(ber_original)
     
-    # ´´½¨Í¼ĞÎ
+    # åˆ›å»ºå›¾å½¢
     plt.figure(figsize=(10, 6))
     plt.grid(True, which="both", ls="--", alpha=0.5)
     
-    # »æÖÆÇúÏß (Ê¹ÓÃ¶ÔÊı×ø±ê)
+    # ç»˜åˆ¶æ›²çº¿ (ä½¿ç”¨å¯¹æ•°åæ ‡)
     if mode == 1:
-        plt.semilogy(ebno_db, ber_optimized, 
-                    'b-o', linewidth=2, markersize=8, 
-                    label='Optimized LDPC(BER)')
+        plt.semilogy(ebno_db, ber_deoptimized, 
+                    'b-o', linewidth=1, markersize=6, 
+                    label='Optimized_ONLYDE LDPC(BER)')
+        
         plt.semilogy(ebno_db, ber_original, 
-                    'r--s', linewidth=2, markersize=8,
+                    color='orange', linestyle='--', marker='s', 
+                    linewidth=1, markersize=6, 
                     label='Original LDPC(BER)')
+        
+        plt.semilogy(ebno_db, ber_deenoptimized, 
+                    'g--s', linewidth=1, markersize=6,
+                    label='Optimized_BOTH LDPC(BER)')
+        
+        plt.semilogy(ebno_db, ber_enoptimized, 
+                    color='purple', linestyle='--', marker='s',
+                    linewidth=1, markersize=6,
+                    label='Optimized_ONLYEN LDPC(BER)')
     else:
-        plt.semilogy(ebno_db, fer_optimized, 
-                    'b--o', linewidth=2, markersize=8,
-                    label='Optimized LDPC(FER)')
+        plt.semilogy(ebno_db, fer_deoptimized, 
+                    'b-o', linewidth=1, markersize=6, 
+                    label='Optimized_ONLYDE LDPC(FER)')
+        
         plt.semilogy(ebno_db, fer_original, 
-                    'r--s', linewidth=2, markersize=8,
+                    color='orange', linestyle='--', marker='s', 
+                    linewidth=1, markersize=6, 
                     label='Original LDPC(FER)')
+        
+        plt.semilogy(ebno_db, fer_deenoptimized, 
+                    'g--s', linewidth=1, markersize=6,
+                    label='Optimized_BOTH LDPC(FER)')
+        
+        plt.semilogy(ebno_db, fer_enoptimized, 
+                    color='purple', linestyle='--', marker='s',
+                    linewidth=1, markersize=6,
+                    label='Optimized_ONLYEN LDPC(FER)')
     
-    # ÉèÖÃ×ø±êÖá
-    plt.xlim(-1, 2)  # ¸ù¾İĞèÇóµ÷Õû·¶Î§
-    plt.ylim(1e-6, 1)
+    # è®¾ç½®åæ ‡è½´
+    plt.xlim(0, 5)  # æ ¹æ®éœ€æ±‚è°ƒæ•´èŒƒå›´
+    plt.ylim(1e-5, 1)
     plt.xlabel('Eb/N0 (dB)', fontsize=12)
     if mode == 1:
         plt.ylabel('Bit Error Rate (BER)', fontsize=12)
@@ -51,22 +72,24 @@ def plot_ber_comparison(csv_file, output_img=None, mode=1):
         plt.ylabel('Frame Error Rate (FER)', fontsize=12)
     plt.title('LDPC Performance Comparison', fontsize=14)
     
-    # ÌØÊâ¿Ì¶ÈÉèÖÃ
-    plt.yticks([1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6],
+    # ç‰¹æ®Šåˆ»åº¦è®¾ç½®
+    plt.yticks([1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5],
               ["$10^{0}$", "$10^{-1}$", "$10^{-2}$", "$10^{-3}$", 
-               "$10^{-4}$", "$10^{-5}$", "$10^{-6}$"])
+               "$10^{-4}$", "$10^{-5}$"])
     
-    # ½«Ô­µãÉèÔÚ×óÉÏ½Ç
+    # å°†åŸç‚¹è®¾åœ¨å·¦ä¸Šè§’
     ax = plt.gca()
-    ax.invert_xaxis()  # Èç¹ûĞèÒªºáÖáÒ²·´Ïò¿ÉÒÔÈ¡Ïû×¢ÊÍ
+    #ax.invert_xaxis()  # å¦‚æœéœ€è¦æ¨ªè½´ä¹Ÿåå‘å¯ä»¥å–æ¶ˆæ³¨é‡Š
     
-    # Ìí¼ÓÍ¼ÀıºÍ×¢ÊÍ
-    plt.legend(loc='upper right', fontsize=12)
+    # æ·»åŠ å›¾ä¾‹å’Œæ³¨é‡Š
+    # è°ƒæ•´å›¾ä¾‹ä½ç½®ï¼Œä½¿å…¶åœ¨å›¾å¤–
+    plt.legend(loc='upper left', bbox_to_anchor=(1.05, 1), fontsize=6)
+
     plt.text(0.02, 0.02, 'Lower is Better', 
             transform=ax.transAxes, fontsize=10,
             bbox=dict(facecolor='white', alpha=0.8))
     
-    # Êä³ö½á¹û
+    # è¾“å‡ºç»“æœ
     if output_img:
         plt.savefig(output_img, dpi=300, bbox_inches='tight')
         print(f"Plot saved to {output_img}")
@@ -75,54 +98,57 @@ def plot_ber_comparison(csv_file, output_img=None, mode=1):
         
 
 def plot_iteration_comparison(csv_file, output_img=None):
-    """
-    »æÖÆLDPCÓÅ»¯Ç°ºóÒëÂëµü´ú´ÎÊı¶Ô±ÈÇúÏß
-    
-    ²ÎÊı:
-        csv_file: ÊäÈëCSVÎÄ¼şÂ·¾¶£¬°üº¬¶àÁĞ£º
-                 - µÚ1ÁĞ: Eb/N0 (dB)
-                 - µÚ6ÁĞ: ÓÅ»¯ºóµÄÆ½¾ùµü´ú´ÎÊı
-                 - µÚ7ÁĞ: Î´ÓÅ»¯µÄÆ½¾ùµü´ú´ÎÊı
-        output_img: Êä³öÍ¼Æ¬Â·¾¶(¿ÉÑ¡)£¬ÈçÎ´Ö¸¶¨ÔòÏÔÊ¾Í¼Ïñ
-    """
-    # ¶ÁÈ¡Êı¾İ (×¢ÒâÁĞË÷Òı´Ó0¿ªÊ¼)
+    # è¯»å–æ•°æ® (æ³¨æ„åˆ—ç´¢å¼•ä»0å¼€å§‹)
     data = pd.read_csv(csv_file, header=None)
-    ebno_db = data.iloc[:, 0]    # µÚ1ÁĞ: Eb/N0
-    iter_optimized = data.iloc[:, 5]  # µÚ6ÁĞ: ÓÅ»¯µü´ú´ÎÊı
-    iter_original = data.iloc[:, 6]   # µÚ7ÁĞ: Ô­Ê¼µü´ú´ÎÊı
+    ebno_db = data.iloc[:, 0].astype(float)    # ç¬¬1åˆ—: Eb/N0
+    iter_deoptimized = data.iloc[:, 5].astype(float)  # ç¬¬6åˆ—: ä¼˜åŒ–è¿­ä»£æ¬¡æ•°
+    iter_original = data.iloc[:, 6].astype(float)   # ç¬¬7åˆ—: åŸå§‹è¿­ä»£æ¬¡æ•°
+    iter_deenoptimized = data.iloc[:, 11].astype(float)  # ç¬¬6åˆ—: ä¼˜åŒ–è¿­ä»£æ¬¡æ•°
+    iter_enoptimized = data.iloc[:, 12].astype(float)   # ç¬¬7åˆ—: åŸå§‹è¿­ä»£æ¬¡æ•°
     
-    # ´´½¨Í¼ĞÎ
+    # åˆ›å»ºå›¾å½¢
     plt.figure(figsize=(10, 6))
     plt.grid(True, linestyle='--', alpha=0.6)
     
-    # »æÖÆÇúÏß
-    plt.plot(ebno_db, iter_optimized, 
-            'g-^', linewidth=2, markersize=8, 
-            label='Optimized LDPC')
+    # ç»˜åˆ¶æ›²çº¿
+    plt.plot(ebno_db, iter_deoptimized, 
+            'g-^', linewidth=1, markersize=6, 
+            label='Optimized_ONLYDE LDPC')
+
     plt.plot(ebno_db, iter_original, 
-            'm--D', linewidth=2, markersize=8,
+            color='orange', linestyle='--', marker='D', 
+            linewidth=1, markersize=6, 
             label='Original LDPC')
-    
-    # ÉèÖÃ×ø±êÖá
-    plt.xlim(-1, 2)  # ºáÖá·¶Î§
-    plt.ylim(0, max(max(iter_optimized), max(iter_original)) * 1.1)  # ×İÖá×Ô¶¯ÊÊÓ¦
+
+    plt.plot(ebno_db, iter_deenoptimized, 
+            'b--D', linewidth=1, markersize=6,
+            label='Optimized_BOTH LDPC')
+
+    plt.plot(ebno_db, iter_enoptimized, 
+            color='purple', linestyle='--', marker='D',
+            linewidth=1, markersize=6,
+            label='Optimized_ONLYEN LDPC')
+        
+    # è®¾ç½®åæ ‡è½´
+    plt.xlim(0, 5)  # æ¨ªè½´èŒƒå›´
+    plt.ylim(0, 30)  # çºµè½´è‡ªåŠ¨é€‚åº”
     
     plt.xlabel('Eb/N0 (dB)', fontsize=12)
     plt.ylabel('Average Decoding Iterations', fontsize=12)
     plt.title('LDPC Decoding Complexity Comparison', fontsize=14)
     
-    # ÉèÖÃÔ­µãÔÚ×óÏÂ½Ç (Ä¬ÈÏ¾ÍÊÇ)
+    # è®¾ç½®åŸç‚¹åœ¨å·¦ä¸‹è§’ (é»˜è®¤å°±æ˜¯)
     ax = plt.gca()
-    ax.set_ylim(bottom=0)  # È·±£×İÖá´Ó0¿ªÊ¼
+    ax.set_ylim(bottom=0)  # ç¡®ä¿çºµè½´ä»0å¼€å§‹
     
-    # Ìí¼ÓÍ¼ÀıºÍ×¢ÊÍ
-    plt.legend(loc='upper right', fontsize=12)
+    # æ·»åŠ å›¾ä¾‹å’Œæ³¨é‡Š
+    plt.legend(loc='upper right', fontsize=6)
     plt.text(0.02, 0.98, 'Lower is Better', 
             transform=ax.transAxes, fontsize=10,
             ha='left', va='top',
             bbox=dict(facecolor='white', alpha=0.8))
     
-    # Êä³ö½á¹û
+    # è¾“å‡ºç»“æœ
     if output_img:
         plt.savefig(output_img, dpi=300, bbox_inches='tight')
         print(f"Plot saved to {output_img}")
@@ -130,9 +156,9 @@ def plot_iteration_comparison(csv_file, output_img=None):
         plt.show()
 
 
-# Ê¹ÓÃÊ¾Àı
-plot_ber_comparison('../../output/er_results.csv', output_img='../../img/ldpc_comparison.png', mode = 1)
-plot_ber_comparison('../../output/er_results.csv', output_img='../../img/ldpc_comparison.png', mode = 2)
+# ä½¿ç”¨ç¤ºä¾‹
+plot_ber_comparison('C:\\code\\C\\ldpc_emulation\\output\\data.csv', output_img='ldpc_comparison_ber.png', mode = 1)
+plot_ber_comparison('C:\\code\\C\\ldpc_emulation\\output\\data.csv', output_img='.ldpc_comparison_fer.png', mode = 2)
 
-# Ê¹ÓÃÊ¾Àı
-plot_iteration_comparison('../../output/decoding_results.csv', output_img='../../img/iteration_comparison.png')
+# ä½¿ç”¨ç¤ºä¾‹
+plot_iteration_comparison('C:\\code\\C\\ldpc_emulation\\output\\data.csv', output_img='iteration_comparison.png')

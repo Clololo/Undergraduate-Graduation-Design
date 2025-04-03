@@ -177,6 +177,9 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     errorFrameWithLDPC = 0;  //记录误码无法纠正的帧数(PSO优化)
     errorFrameWithLDPCCompare = 0;  //记录误码无法纠正的帧数（无PSO优化对照）
     iter_success = 0;
+    countTest = 0;
+    countCompare = 0;
+
     clock_t start_time = clock();
     //参数设置 begin
     int iter_num = frames;
@@ -220,12 +223,14 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     //通过PSO得到优化的校验矩阵
     else{
         PSOHGenerator("output/optim_checkmatrix.csv", mz, nz, H, Hp, Hs);
-
-        if(is_full_rank(H, mz, nz) && is_full_rank(Hp, mz, mz) && is_full_rank(Hs, mz, nz-mz)){
+        int H_fullrank = is_full_rank(H, mz, nz);
+        int Hp_fullrank = is_full_rank(Hp, mz, mz);
+        int Hs_fullrank = is_full_rank(Hs, mz, nz-mz);
+        if(H_fullrank && Hp_fullrank && Hs_fullrank){
             printf("Generate valid Matrix\n");
         }
         else{
-            printf("Generate INVALID Matrix!!!\n");
+            printf("Generate INVALID Matrix!!! info:%d %d %d\n",H_fullrank, Hp_fullrank, Hs_fullrank);
             return;
         }
 
@@ -365,7 +370,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
    // float trueFER = (double)((double)errorFrameWithLDPC / (double)frames);
     
     printf("-----------------------------------------------------\n\n");
-    printf("%d %d %lld\n",errorBit,errorBitWithLDPC,allbit);
+    printf("%.2f %d %lld\n", Eb_N0_dB, frames, allbit);
     printf("bits transmitted: %d frames transmitted: %d\n",allbit, frames);
     //printf("WRONG bits in transmission: %d\n",errorBit);
     printf("WRONG bits after LDPC: %d\n",errorBitWithLDPC);
@@ -373,8 +378,8 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
    // printf("WRONG frames in transmission: %d\n",errorFrame);
     printf("WRONG frames after LDPC: %d\n",errorFrameWithLDPC);
     printf("WRONG frames after LDPC(compare): %d\n", errorFrameWithLDPCCompare);
-    printf("total iter:%d\n",countTest);
-    printf("total iter(compare):%d\n",countCompare);
+    printf("AVG total iter:%.2f\n",(double)countTest/(double)frames);
+    printf("AVG total iter(compare):%.2f\n",(double)countCompare/(double)frames);
     printf("The OPT BER is %e, NOR BER is %e\n", trueBER, trueBERcompare);
     printf("The OPT FER is %e, NOR FER is %e\n", trueFER, trueFERcompare);
    // printf("The simulated FER is %e\nunder LDPC, the actual FER is %e\n", simulateFER, trueFER);
@@ -402,7 +407,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     // 计算运行时间
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
-    append_performance_data("output\\er_results.csv", Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, elapsed_time, elapsed_time);
+    append_performance_data("output\\er_results.csv", Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, (double)countTest/(double)frames, (double)countCompare/(double)frames);
 
     // 打印运行时间
     printf("total running time: %.1f ms\n", elapsed_time * 1000);

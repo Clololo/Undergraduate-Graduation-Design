@@ -202,6 +202,7 @@ void adjust_H(int **H, int m, int n) {
             }
             
             if (is_full_rank(Hp, m, m) && is_full_rank(Hs, m, n - m)) {
+                printf("successfully adjust Hs and Hp\n");
                 return;
             }
 
@@ -210,6 +211,8 @@ void adjust_H(int **H, int m, int n) {
             free(Hs);
         }
     }
+    printf("Fail to adjust Hs and Hp\n");
+    return;
 }
 
 // ¾ØÕó×ªÖÃ
