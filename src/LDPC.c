@@ -42,131 +42,6 @@ int ct(int *C, Graph* tanner) {
     return 1;  // 检验通过
 }
 
-//return 优化掉的迭代次数
-//每一次func意味着调用num_frames次generateRandomBinaryString，即完成编码num_frames次编译码过程
-double func(int particle_index, double alpha, double beta, int **H, int iteration, int num_frames, 
-    double *pop, int M, int N, int g, int **Hs, int **Hp, double Eb_N0_dB, double R) {
-
-    double total_iters_with_pso = 0.0;
-    double total_iters = 0.0;
-    int success_frames = 0;
-    double total_errors_with_pso = 0.0;
-    double total_errors = 0.0;
-
-    for (int f = 0; f < num_frames; f++) {
-
-        // 生成信息位
-        int *randomS = (int *)malloc((N - M) * sizeof(double));    
-        generateS(N - M, randomS);
-        // printf("pre:");
-        // for(int i = 0; i < N-M;i++){
-        //     printf("%d",randomS[i]);
-        // }
-        // printf("\n");
-        // 生成码
-        int *C = (int *)malloc((N) * sizeof(double));
-        Encoder(H, Hs, Hp, randomS, bgm, bgn - bgm, bgz, C);
-        // printf("enc:");
-        // for(int i = 0; i < N;i++){
-        //     printf("%d",C[i]);
-        // }
-        // printf("\n");
-        // 添加噪声'
-        double *electron = (double*)malloc(N * sizeof(double));
-        double *ctmp = (double*)malloc(N * sizeof(double));
-        double *ctmp2 = (double*)malloc(N * sizeof(double));
-        BPSK_Modulation(C, ctmp, N);
-        // 计算SNR和sigma
-        double SNR_dB = Eb_N0_dB + 10 * log10(R) - 10 * log10(0.5);
-        double SNR_linear = pow(10.0, SNR_dB / 10.0);
-        double sigma = sqrt(1.0 / SNR_linear);
-        // AWGN信道
-        AWGN_Channel(ctmp, ctmp2, N, SNR_dB, R);
-        
-        // 译码端接收
-        Receiver_LLR(ctmp2, electron, N, sigma);
-        //for(int i = 0;i < N;i++) printf("%.1f ",electron[i]);
-        //printf("\n");
-
-        double *electron_test = (double*)malloc(codelength * sizeof(double));
-        double *electron_compare = (double*)malloc(codelength * sizeof(double));
-        memcpy(electron_test, electron, N * sizeof(double));
-        memcpy(electron_compare, electron, N * sizeof(double));
-
-        // 译码
-
-        int *resC = (int*)malloc(codelength * sizeof(int));
-        int iters;
-        int iters1;
-        int error1 = 0;
-        int error2 = 0;
-        // //PSO优化后的迭代次数-->iters 
-        // MINBP(C, electron, &resC, tanner, iteration, alpha, beta, &iters, pop);
-        // //NORMAL的迭代次数-->iters1
-        // MINBP_NORMAL(C, electron, &resC, tanner, iteration, alpha, beta, &iters1);
-        LDPCDecoder(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters, &error1, true, pop);
-        LDPCDecoder(H, electron, alpha, run_max_dc_iteration, M, N, resC, &iters1, &error2, false, pop);
-
-        // printf("aft:");
-        // for(int i = N-M; i < N;i++){
-        //     printf("%d",resC[i]);
-        // }
-        // printf("\n----------------------------------------------------\n");
-      //  printf("%d %d||", iters, iters1); 
-        total_iters_with_pso += (double)iters;
-        total_iters += (double)iters1;
-        total_errors_with_pso += error1;
-        total_errors += error2;
-       // compareDigit(resC, C_dup, N * Z);
-
-        // 释放内存
-        free(resC);
-        free(C);
-        free(ctmp);
-        free(ctmp2);
-        free(randomS);
-        free(electron);
-        free(electron_test);
-        free(electron_compare);
-    }
-
-    //printf("error with pso: %.0f\n",total_errors_with_pso);        
-    //printf("error without pso %.0f\n",total_errors);          
-    return (total_iters - total_iters_with_pso) / (double)num_frames;   
-    //printf("func num = %f\n",(total_errors - total_errors_with_pso) / (double)num_frames);
-    //return (total_errors - total_errors_with_pso) / (double)num_frames;   
-}
-
-void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLen, int decoding_time, int iteration, 
-    double pop[][codelength], double v[][codelength], double fitness[],
-    double gbestPop[], double *gbestFitness,
-    double pbestPop[][codelength], double pbestFitness[],
-    int N, int M, int g, int **Hs, int **Hp, double Eb_N0_dB, double R) {
-
-    // 进行 PSO 优化
-    // 总解码次数  decoding_time次，前decoding_time *0.2次用于PSO优化
-    int optimization_iters = opt_time;
-    int update_interval = update_window;
-    for (int iter = 0; iter < optimization_iters; iter += update_interval) {
-        //  每个粒子单独用于译码   
-        if((iter*10)%optimization_iters == 0 && iter!= 0) printf("%d%% opt-finished\n",(iter*100/optimization_iters));
-        // for(int i = 0; i < codelength; i++ ){
-        //     printf("POP[%d] = %f\n",i,pop[0][i]);
-        // }
-        for (int i = 0; i < sizePop_de; i++) {
-            // == 每个func译码 update_interval次
-            //在这里fitness已经更新，不需要再到update_particles更新fitness 
-            fitness[i] = func(i, alpha, beta, H, iteration, update_interval, pop[i], M, N, g, Hs, Hp, Eb_N0_dB, R);
-           // printf("fitness = %f\n",fitness[i]);
-            //printf("particle %d average opt-decoding %f times\n", i+1, fitness[i]);
-        }
-        // 更新粒子群
-        update_particles(sizePop_de, codelength, pop, v, fitness, pbestPop, pbestFitness, gbestPop, gbestFitness);
-    }
-
-    // 选取最佳参数
-    getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
-}
 
 void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bool UsePSOGenH){
     //重置数据
@@ -260,20 +135,21 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     // 编码阶段 end
     // 粒子群优化的参数
     // 粒子群优化初始化
-    double pop[sizePop_de][codelength], v[sizePop_de][codelength], fitness[sizePop_de];    
-    initPopVFit(sizePop_de, codelength, pop, v, fitness);
+    //double pop[sizePop_de][codelength], v[sizePop_de][codelength], fitness[sizePop_de];    
+    //initPopVFit(sizePop_de, codelength, pop, v, fitness);
 
     // 初始最优解
     double gbestPop[codelength], gbestFitness;    
-    double pbestPop[sizePop_de][codelength], pbestFitness[sizePop_de];
+    //double pbestPop[sizePop_de][codelength], pbestFitness[sizePop_de];
     //使用PSO对权重最优值进行搜索
-    initPopVFit(sizePop_de, codelength, pop, v, fitness);
-    getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness);
+    // initPopVFit(sizePop_de, codelength, pop, v, fitness);
+    // getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness);
+    // pso_optimize_min_sum(H, alpha, beta, sizePop_de, codelength, frames, max_iteration, \
+    //                      pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
+    //                      N*Z, M*Z, g, Hs, Hp, Eb_N0_dB, R);
 
-    pso_optimize_min_sum(H, alpha, beta, sizePop_de, codelength, frames, max_iteration, \
-                         pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
-                         N*Z, M*Z, g, Hs, Hp, Eb_N0_dB, R);
-
+    //直接读取预训练的POP权重
+    load_pop_from_csv(Eb_N0_dB, gbestPop, codelength, usepsogenH);
     // for(int i = 0; i < max_read_length; i++){
     //     printf("gbestPop[%d] = %f\n", i+1, gbestPop[i]);
     // }
@@ -407,10 +283,12 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     // 计算运行时间
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
-    append_performance_data("output\\er_results.csv", Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, (double)countTest/(double)frames, (double)countCompare/(double)frames);
+    char filename_store[64];
+    snprintf(filename_store, sizeof(filename_store), "output\\er_results_%d_%d_%d.csv", codelength, (int)(R*100), usepsogenH);
+    append_performance_data(filename_store, Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, (double)countTest/(double)frames, (double)countCompare/(double)frames);
 
     // 打印运行时间
-    printf("total running time: %.1f ms\n", elapsed_time * 1000);
+    printf("SNR = %.1fdB, running time: %.1f ms\n", Eb_N0_dB, elapsed_time * 1000);
     
     // 将值写入文件
     // fprintf(file, "%.2f, %.2f,%d,%d,%d,%d,%.2e,%.2e,%.2e,%.2e,%.1f\n", alpha, beta, snr_db, allbit, frames, iteration, simulateBER, trueBER, simulateFER, trueFER, elapsed_time/10);

@@ -261,3 +261,56 @@ int append_performance_data(const char* filename,
     fclose(file);
     return 0;
 }
+
+// 将数组 pop 写入文件名为 pso{snr}.csv 的文件中
+void save_pop_to_csv(double snr, const double *pop, int length, int pso_en) {
+    char filename[64];
+    snprintf(filename, sizeof(filename), "output/pso%.1f_%d.csv", snr, pso_en);
+
+    for (char *p = filename; *p; ++p) {
+        if (*p == '.'){
+            *p = '_';
+            break;
+        }
+    }
+
+    FILE *fp = fopen(filename, "w");
+    if (fp == NULL) {
+        perror("打开文件失败, 文件可能被占用");
+        printf(" 出错文件：%s",filename);
+        return;
+    }
+
+    for (int i = 0; i < length; i++) {
+        fprintf(fp, "%lf\n", pop[i]);
+    }
+
+    fclose(fp);
+}
+
+// 从 pso{snr}.csv 文件读取数据到 pop 中，最多读取 max_length 个数
+void load_pop_from_csv(double snr, double *pop, int max_length, int pso_en) {
+    char filename[64];
+    snprintf(filename, sizeof(filename), "output/pso%.1f_%d.csv", snr, pso_en);
+
+    for (char *p = filename; *p; ++p) {
+        if (*p == '.'){
+            *p = '_';
+            break;
+        }
+    }
+
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        perror("打开文件失败，请检查文件是否存在");
+        printf(" 出错文件：%s",filename);
+        return;
+    }
+
+    int count = 0;
+    while (count < max_length && fscanf(fp, "%lf", &pop[count]) == 1) {
+        count++;
+    }
+
+    fclose(fp);
+}

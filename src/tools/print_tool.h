@@ -28,5 +28,7 @@ int append_performance_data(const char* filename,
     double fer,
     double iter_opt,
     double iter) ;
+void save_pop_to_csv(double snr, const double *pop, int length, int pso_en);
+void load_pop_from_csv(double snr, double *pop, int max_length, int pso_en);
 
 #endif

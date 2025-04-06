@@ -121,7 +121,8 @@
     "electron_sim.h": "c",
     "config.h": "c",
     "mat_tool.h": "c",
-    "encode.h": "c"
+    "encode.h": "c",
+    "utils.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

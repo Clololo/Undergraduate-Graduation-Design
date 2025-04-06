@@ -6,7 +6,7 @@
  * 实际运行参数
  * 
  */
-#define run_frames 2000
+#define run_frames 15000
 #define run_max_dc_iteration 30
 #define run_alpha 0.7
 #define run_beta 0
@@ -44,7 +44,7 @@
 #define pre_code_rate_limit 0.52  //预期的最高码率
 #define vn_deg_max (((int)(sqrt(pred_cn_l)/2))+1)
 #define cn_deg_max (((int)(sqrt(pred_vn_l)))+1)
-#define dim (vn_deg_max+cn_deg_max)   //总不同度数
+#define dim (vn_deg_max + cn_deg_max)   //总不同度数
 #define dimlimit 144
 #define alpha_penalty 10
 #define beta_penalty 10
@@ -63,11 +63,11 @@
  */
 #define codelength 144   //预期码长
 #define sizePop_de 30   //粒子规模
-#define max_iteration 50  //译码尝试次数上限
+#define max_iteration 30  //译码尝试次数上限
 #define init_fitness 0  
 #define error_punish 30  //译码出错时等效迭代次数
 #define update_window 10  //每更新一次粒子位置的译码次数
-#define opt_time 200   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
+#define opt_time 800   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
 
 //参数选择
 #define de_lr0 0.89

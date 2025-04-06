@@ -73,7 +73,7 @@ double generateRandomFloat() {
 bool randomcheck(float errorRate){
     float randomValue = generateRandomFloat();
     if(randomValue < errorRate){
-        errorBit ++;  
+        //errorBit ++;  
         return true;
     }
     return false;
