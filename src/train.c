@@ -163,7 +163,7 @@ void train(double SNR){
     
     //通过定义的H_block得到校验矩阵
     if(!usepsogenH) {
-        read_base_graph("src\\bg2.csv", H_block, &bg_rows, &bg_cols);
+        read_base_graph("src/bg2.csv", H_block, &bg_rows, &bg_cols);
         printf("Base graph loaded: %d x %d\n", bg_rows, bg_cols);
         HGenerator(H_block, mb, nb, z, H, Hp, Hs);
     }

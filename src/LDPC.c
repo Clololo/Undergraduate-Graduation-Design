@@ -91,7 +91,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     
     //通过定义的H_block得到校验矩阵
     if(!UsePSOGenH) {
-        read_base_graph("src\\bg2.csv", H_block, &bg_rows, &bg_cols);
+        read_base_graph("src/bg2.csv", H_block, &bg_rows, &bg_cols);
         printf("Base graph loaded: %d x %d\n", bg_rows, bg_cols);
         HGenerator(H_block, mb, nb, z, H, Hp, Hs);
     }
@@ -284,7 +284,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
     char filename_store[64];
-    snprintf(filename_store, sizeof(filename_store), "output\\er_results_%d_%d_%d.csv", codelength, (int)(R*100), usepsogenH);
+    snprintf(filename_store, sizeof(filename_store), "output/er_results_%d_%d_%d.csv", codelength, (int)(R*100), usepsogenH);
     append_performance_data(filename_store, Eb_N0_dB, trueBER, trueBERcompare, trueFER, trueFERcompare, (double)countTest/(double)frames, (double)countCompare/(double)frames);
 
     // 打印运行时间
