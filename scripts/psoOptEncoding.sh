@@ -10,7 +10,8 @@ start_time=$(date +%s%3N)
 echo "Compiling PSOtest..."
 gcc -o ../bin/PSOtest \
     ../src/PSO_OPT/psotest.c ../src/PSO_OPT/pso.c ../src/PSO_OPT/FDE.c ../src/PSO_OPT/GA.c \
-    ../src/tools/print_tool.c ../src/tools/math_tool.c
+    ../src/tools/print_tool.c ../src/tools/math_tool.c -lm
+    
 if [ $? -ne 0 ]; then
     echo "Compilation of PSOtest failed."
     exit 1
