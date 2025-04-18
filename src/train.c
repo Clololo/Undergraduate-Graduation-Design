@@ -122,11 +122,11 @@ void pso_optimize_min_sum(int **H, float alpha, float beta, int size, int codeLe
             //printf("particle %d average opt-decoding %f times\n", i+1, fitness[i]);
         }
         // 更新粒子群
-        update_particles(sizePop_de, codelength, pop, v, fitness, pbestPop, pbestFitness, gbestPop, gbestFitness);
+        update_particles(sizePop_de, pred_vn_l, pop, v, fitness, pbestPop, pbestFitness, gbestPop, gbestFitness);
     }
 
     // 选取最佳参数
-    getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
+    getInitBest(sizePop_de, pred_vn_l, pop, v, fitness, gbestPop, gbestFitness, pbestPop, pbestFitness);
 }
 
 
@@ -192,8 +192,8 @@ void train(double SNR){
     double gbestPop[codelength], gbestFitness;    
     double pbestPop[sizePop_de][codelength], pbestFitness[sizePop_de];
     //使用PSO对权重最优值进行搜索
-    initPopVFit(sizePop_de, codelength, pop, v, fitness);
-    getInitBest(sizePop_de, codelength, pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness);
+    initPopVFit(sizePop_de, pred_vn_l, pop, v, fitness);
+    getInitBest(sizePop_de, pred_vn_l, pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness);
 
     pso_optimize_min_sum(H, run_alpha, run_beta, sizePop_de, codelength, opt_time, max_iteration, \
                          pop, v, fitness, gbestPop, &gbestFitness, pbestPop, pbestFitness, \
@@ -204,7 +204,7 @@ void train(double SNR){
         // 计算运行时间
     double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
     
-    save_pop_to_csv(SNR, gbestPop, codelength, usepsogenH);
+    save_pop_to_csv(SNR, gbestPop, pred_vn_l, usepsogenH);
     
         // 打印运行时间
     printf("SNR = %.1fdB, training time: %.1f ms\n", SNR, elapsed_time * 1000);
@@ -213,7 +213,7 @@ void train(double SNR){
 
 int main(){
     clock_t start1_time = clock();
-    for(double snr = 0.0; snr <= 5.0; snr += 0.5){
+    for(double snr = 0.0; snr <= 3.0; snr += 0.5){
         train(snr);
     }
     clock_t end1_time = clock();

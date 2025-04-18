@@ -20,7 +20,7 @@ fi
 
 # 切换到上级目录运行程序
 cd ..
-./bin/LDPCrun
+stdbuf -oL -eL ./bin/LDPCrun
 
 # 回到 scripts 目录
 cd scripts

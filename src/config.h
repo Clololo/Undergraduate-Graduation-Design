@@ -6,7 +6,7 @@
  * 实际运行参数
  * 
  */
-#define run_frames 20000
+#define run_frames 1000
 #define run_max_dc_iteration 30
 #define run_alpha 0.7
 #define run_beta 0
@@ -38,8 +38,8 @@
 #define max_read_length 144   //上限读取值
 #define pred_vn_l 72    //预期变量节点数量
 #define pred_cn_l 72 //预期校验节点数量
-#define init_cn_deg 4 //开始优化时的初始度分布预设
-#define init_vn_deg 2  //开始优化时的初始度分布预设
+#define init_cn_deg 6 //开始优化时的初始度分布预设
+#define init_vn_deg 3  //开始优化时的初始度分布预设
 #define pred_code_rate_lowlimit 0.48  //预期的最低码率
 #define pre_code_rate_limit 0.52  //预期的最高码率
 #define vn_deg_max (((int)(sqrt(pred_cn_l)/2))+1)
@@ -66,12 +66,12 @@
 #define max_iteration 30  //译码尝试次数上限
 #define init_fitness 0  
 #define error_punish 30  //译码出错时等效迭代次数
-#define update_window 20  //每更新一次粒子位置的译码次数
-#define opt_time 1000   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
+#define update_window 10  //每更新一次粒子位置的译码次数
+#define opt_time 200   //用于优化的总次数（opt_time/update_window 为粒子更新的次数）
 
 //参数选择
-#define de_lr0 0.89
-#define de_lr1 1.89
+#define de_lr0 0.69
+#define de_lr1 1.49
 #define de_rangepoplow 0.0
 #define de_rangepophigh 1.0
 #define de_rangevlow -0.1

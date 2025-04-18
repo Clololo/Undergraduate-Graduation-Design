@@ -20,7 +20,7 @@ fi
 
 # 切换到上级目录并运行程序
 cd ..
-./bin/trainrun
+stdbuf -oL -eL ./bin/trainrun
 
 # 返回 scripts 目录
 cd scripts

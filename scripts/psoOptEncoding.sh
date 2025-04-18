@@ -33,10 +33,10 @@ cd ..
 exec_start_time=$(date +%s%3N)
 
 echo "Running PSOtest..."
-./bin/PSOtest
+stdbuf -oL -eL ./bin/PSOtest
 
 echo "Running peg..."
-./bin/peg
+stdbuf -oL -eL ./bin/peg
 
 exec_end_time=$(date +%s%3N)
 

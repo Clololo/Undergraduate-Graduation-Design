@@ -26,7 +26,7 @@ void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax,
 
     for (int i = 0; i < n; i++) {
         Vij[i] = (double*)malloc(m * sizeof(double));
-        U0i[i] = LLR_y[i];
+        U0i[i] = LLR_y[i];  //初始LLR
         for (int j = 0; j < m; j++) {
             Vij[i][j] = 0.0;
         }
@@ -43,10 +43,10 @@ void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax,
                     for (int k = 0; k < m; k++) {
                         if (H[k][i] == 1 && k != j) {
                         // WBP算法应用权重
-                            sum += (useWBP) ? weights[k] * Uji[k][i] : Uji[k][i];
+                            sum += Uji[k][i];
                         }
                     }
-                    Vij[i][j] = sum;
+                    Vij[i][j] = (useWBP) ? weights[i] * sum : sum;
                 }
             }
         }
@@ -68,13 +68,8 @@ void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax,
                             }
                         }
                     }
-
                     // 应用NMS或WBP
-                    if (useWBP) {
-                        Uji[j][i] = prodSign * minVal * weights[j] * alpha; // WBP使用节点特定权重
-                    } else {
-                        Uji[j][i] = prodSign * minVal * alpha; // NMS使用全局alpha
-                    }
+                    Uji[j][i] = prodSign * minVal * alpha; // NMS使用全局alpha
                 }
             }
         }
@@ -84,7 +79,7 @@ void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax,
             double sum = U0i[i];
             for (int j = 0; j < m; j++) {
                 if (H[j][i] == 1) {
-                sum += (useWBP) ? weights[j] * Uji[j][i] : Uji[j][i];
+                    sum += Uji[j][i];
                 }
             }
             x[i] = (sum < 0) ? 1 : 0;
@@ -110,7 +105,7 @@ void LDPCDecoder(int** H, double* LLR_y, double alpha, int iterMax,
             break; // 校验成功，提前终止迭代
         }
     }
-
+        
     for (int j = 0; j < m; j++) {
         int sum = 0;
         for (int i = 0; i < n; i++) {

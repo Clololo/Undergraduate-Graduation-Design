@@ -129,6 +129,7 @@ void Encoder(int** H, int** Hs, int** Hp, int* s, int mb, int kb, int z, int* x)
 
     transposeMatrix(Hp, HpT, mb*z, mb*z);
     transposeMatrix(Hs, HsT, mb*z, kb*z);
+   // printMatrix(HpT, mb*z, mb*z);
     if(!matrix_inverse(HpT, HpT_inv, mb*z)){
         printf("fail to get a inverse Mat\n");
         return;
