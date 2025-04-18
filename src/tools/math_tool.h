@@ -8,4 +8,5 @@ double phi_inverse(double x);
 double phi_derivative(double x);
 int approx(double x);
 
+
 #endif

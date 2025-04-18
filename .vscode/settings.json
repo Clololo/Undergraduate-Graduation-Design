@@ -122,7 +122,8 @@
     "config.h": "c",
     "mat_tool.h": "c",
     "encode.h": "c",
-    "utils.h": "c"
+    "utils.h": "c",
+    "trans.h": "c"
   },
   "python.terminal.activateEnvironment": true
 }

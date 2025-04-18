@@ -156,6 +156,8 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
     // printf("gbestFitness = %f\n",gbestFitness);
 
     //测试优化效果
+    double *floating_sequence = (double*)malloc(codelength * sizeof(double));
+    generate_rand_sequence(codelength, 0.94, 1.06, floating_sequence);
 
     for(int i = 0; i < frames; i++){
         if((i*10)%frames == 0 && i!= 0) printf("%d%% finished\n",(i*100/frames));
@@ -185,13 +187,13 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
         double SNR_dB = Eb_N0_dB + 10 * log10(R) - 10 * log10(0.5);
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
-        
+
         //printf("sigma = %f\n",sigma);
         // AWGN信道
-        AWGN_Channel(ctmp, ctmp2, codelength, sigma, R);
+        AWGN_Channel(ctmp, ctmp2, codelength, sigma, R, floating_sequence);
         
         // 译码端接收
-        Receiver_LLR(ctmp2, electron, codelength, sigma);
+        Receiver_LLR(ctmp2, electron, codelength, sigma, floating_sequence);
         // for(int i = 0; i < 10;i++) printf("%.3f ",ctmp[i]);
         // printf("\n");
         // for(int i = 0; i < 10;i++) printf("%.3f ",ctmp2[i]);
@@ -222,6 +224,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
         countTest += iter_test;
         countCompare += iter_compare;
 
+        free()
         free(C);
         free(C_dup);
         free(resC_test);
@@ -231,7 +234,7 @@ void run(int frames, double Eb_N0_dB, int iteration, float alpha, float beta, bo
         free(electron);
         free(S);
     }
-
+    free(floating_sequence);
     freeMatrix(H, mz);  // free H2D
 
     errorFrame /= 2;  //调用实验组和对照组加了两次

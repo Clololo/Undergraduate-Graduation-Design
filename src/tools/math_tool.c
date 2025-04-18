@@ -105,3 +105,4 @@ double phi_inverse(double y) {
 int approx(double x) {
     return (x - (int)x) >= 0.5 ? (int)(x + 0.5) : (int)x;
 }
+

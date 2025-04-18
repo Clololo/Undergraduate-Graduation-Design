@@ -17,7 +17,6 @@
 #include "preH.h"
 #include "config.h"
 
-
 //return 优化掉的迭代次数
 //每一次func意味着调用num_frames次generateRandomBinaryString，即完成编码num_frames次编译码过程
 double func(int particle_index, double alpha, double beta, int **H, int iteration, int num_frames, 
@@ -28,6 +27,8 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
     int success_frames = 0;
     double total_errors_with_pso = 0.0;
     double total_errors = 0.0;
+    double *floating_sequence = (double*)malloc(codelength * sizeof(double));
+    generate_rand_sequence(codelength, 0.94, 1.06, floating_sequence);
 
     for (int f = 0; f < num_frames; f++) {
 
@@ -49,10 +50,11 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         double SNR_linear = pow(10.0, SNR_dB / 10.0);
         double sigma = sqrt(1.0 / SNR_linear);
         // AWGN信道
-        AWGN_Channel(ctmp, ctmp2, N, SNR_dB, R);
+        
+        AWGN_Channel(ctmp, ctmp2, N, SNR_dB, R, floating_sequence);
         
         // 译码端接收
-        Receiver_LLR(ctmp2, electron, N, sigma);
+        Receiver_LLR(ctmp2, electron, N, sigma, floating_sequence);
         //for(int i = 0;i < N;i++) printf("%.1f ",electron[i]);
         //printf("\n");
 
@@ -92,6 +94,7 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
         free(electron_compare);
     }
 
+    free(floating_sequence);
     //printf("error with pso: %.0f\n",total_errors_with_pso);        
     //printf("error without pso %.0f\n",total_errors);          
     return (total_iters - total_iters_with_pso) / (double)num_frames;   
