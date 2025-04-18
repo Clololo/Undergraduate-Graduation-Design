@@ -43,30 +43,19 @@ void generate_rand_sequence(int n, double lmin, double lmax, double* sequence) {
         double group[group_size];
         double sum = 0.0;
 
-        // 计算允许的最大sum，确保最后一个值在lmin~lmax范围内
-        double max_sum = group_size * 1.0 - lmin;
-        double min_sum = group_size * 1.0 - lmax;
-
+        // 先随机前7个，保证都合法
         for (int i = 0; i < group_size - 1; i++) {
-            // 动态调整生成范围，防止最后一个无法满足
-            double remain_min = min_sum - sum;
-            double remain_max = max_sum - sum;
-            double lower = lmin;
-            double upper = lmax;
-
-            // 最后一个要留空间
-            if (group_size - 1 - i > 0) {
-                lower = fmax(lmin, remain_min);
-                upper = fmin(lmax, remain_max);
-            }
-
-            double val = lower + (upper - lower) * ((double)rand() / RAND_MAX);
+            double val = lmin + (lmax - lmin) * ((double)rand() / RAND_MAX);
             group[i] = val;
             sum += val;
         }
 
-        // 最后一个严格补偿，确保平均数1
+        // 补偿最后一个，先算目标值
         group[group_size - 1] = group_size * 1.0 - sum;
+
+        // 如果补偿值超出范围，裁剪合法
+        if (group[group_size - 1] < lmin) group[group_size - 1] = lmin;
+        if (group[group_size - 1] > lmax) group[group_size - 1] = lmax;
 
         // 写入序列
         for (int i = 0; i < group_size; i++) {

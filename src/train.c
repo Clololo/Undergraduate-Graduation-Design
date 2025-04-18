@@ -29,7 +29,8 @@ double func(int particle_index, double alpha, double beta, int **H, int iteratio
     double total_errors = 0.0;
     double *floating_sequence = (double*)malloc(codelength * sizeof(double));
     generate_rand_sequence(codelength, 0.94, 1.06, floating_sequence);
-
+    for(int i = 0;i < 5;i++) printf("%lf ",floating_sequence[i]);
+    printf("\n");    
     for (int f = 0; f < num_frames; f++) {
 
         // 生成信息位
